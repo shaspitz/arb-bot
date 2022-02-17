@@ -6,3 +6,4 @@
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX, etc. 
  - Neat React front-end
  - Find inspiration for data pipelines
+ - Write up TDD here and setup instructions
