@@ -1,0 +1,23 @@
+{
+  "name": "arb-bot",
+  "version": "1.0.0",
+  "description": "Trading bot that utilizes Solidity contracts, in conjunction with decentralized exchanges, to commit token arbitrage on any EVM compatible blockchain.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smarshall-spitzbart/arb-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/smarshall-spitzbart/arb-bot/issues"
+  },
+  "homepage": "https://github.com/smarshall-spitzbart/arb-bot#readme",
+  "devDependencies": {
+    "hardhat": "^2.8.4"
+  }
+}
