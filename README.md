@@ -8,3 +8,4 @@
  - Find inspiration for data pipelines
  - Write up TDD here and setup instructions, maybe draw out FSM
  - Is it worth doing this proj in Rust?  
+ - Ideally make this super portable for new DEXs
