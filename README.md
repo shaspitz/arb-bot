@@ -8,7 +8,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 1. Following https://hardhat.org/tutorial/, install Node.js if needed
 2. ```npm install --save-dev hardhat```
 3. ```npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai```
-4. ```npx hardhat compile``` - if any contract dependancies are needed, npm install them. 
+4. ```npx hardhat compile``` - if this command fails and contract dependancies are needed, npm install them. 
  
  TODOs:
  - First step, follow this tutorial to start a new proj in hardhat https://hardhat.org/tutorial/, using ethers.js etc. Then can port over exisitng bot code and change where neccessary.  
