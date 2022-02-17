@@ -2,7 +2,7 @@
 Trading bot that utilizes Solidity contracts, in conjunction with decentralized exchanges, to execute token arbitrage opportunities on any EVM compatible blockchain. 
 
 ## Technologies
-Javascript/Node.js, Solidity, Hardhat, ethers.js.
+Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
  
  TODOs:
  - First step, follow this tutorial to start a new proj in hardhat https://hardhat.org/tutorial/, using ethers.js etc. Then can port over exisitng bot code and change where neccessary.  
