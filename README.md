@@ -5,7 +5,7 @@ Trading bot that utilizes Solidity contracts, in conjunction with decentralized 
 Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
 
 ## Setup
-1. Following https://hardhat.org/tutorial/, install Node.js if needed
+1. Following https://hardhat.org/tutorial/, install Node.js if needed.
 2. ```npm install``` should install needed dependencies to the ```node_modules``` folder. Confirm with ```npx hardhat compile```.
  
  TODOs:
