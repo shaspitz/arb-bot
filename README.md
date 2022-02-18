@@ -11,6 +11,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
  TODOs:
  - First step, follow this tutorial to start a new proj in hardhat https://hardhat.org/tutorial/, using ethers.js etc. Then can port over exisitng bot code and change where neccessary.  
  - Finish initial configuration, port over web3.js references to ethers.js, setup hardhat, etc. See existing readme in downloads
+ - Consider using https://github.com/NomicFoundation/hardhat-hackathon-boilerplate or front-end here https://github.com/NomicFoundation/hardhat-hackathon-boilerplate/tree/master/frontend
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
  - Neat React front-end
  - Find inspiration for data pipelines
