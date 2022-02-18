@@ -1,5 +1,6 @@
 // See https://hardhat.org/guides/deploying.html and/or https://github.com/wighawag/hardhat-deploy#1-namedaccounts-ability-to-name-addresses,
-// !still unclear how private keys are passed. 
+// or https://www.youtube.com/watch?v=Uvphp4aVeDg&ab_channel=MoralisWeb3
+// Simple explanation on why we only need to pass the private key: https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
 
 async function main() {
     if (network.name === "hardhat") {
