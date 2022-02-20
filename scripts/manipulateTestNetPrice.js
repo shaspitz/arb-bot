@@ -1,12 +1,8 @@
 // -- IMPORT PACKAGES -- //
 require("dotenv").config();
 
-const Web3 = require('web3')
-const {
-    ChainId,
-    Token,
-    WETH
-} = require("@uniswap/sdk")
+const Web3 = require('web3') // TODO: replace with ethers calls. 
+const { ChainId, Token, WETH } = require("@uniswap/sdk")
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json')
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json")
 const IERC20 = require('@openzeppelin/contracts/build/contracts/ERC20.json')
@@ -35,6 +31,7 @@ const V2_ROUTER_TO_USE = uRouter
 
 const UNLOCKED_ACCOUNT = '0x0e5069514a3Dd613350BAB01B58FD850058E5ca4' // SHIB Unlocked Account
 const ERC20_ADDRESS = process.env.ARB_AGAINST
+// TODO: make this amount configurable.
 const AMOUNT = '40500000000000' // 40,500,000,000,000 SHIB -- Tokens will automatically be converted to wei
 const GAS = 450000
 
