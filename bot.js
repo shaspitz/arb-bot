@@ -1,6 +1,6 @@
 // -- HANDLE INITIAL SETUP -- //
 
-require('./helpers/server')
+require('./helpers/server');
 require("dotenv").config();
 
 const config = require('./config.json')
