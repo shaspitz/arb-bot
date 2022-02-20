@@ -20,7 +20,7 @@ const estimatedGasCost = process.env.GAS_PRICE // Estimated Gas: 0.0084532200000
 let uPair, sPair, amount
 let isExecuting = false
 
-const main = async () => {
+async function main() {
     const { token0Contract, token1Contract, token0, token1 } = await getTokenAndContract(arbFor, arbAgainst)
     uPair = await getPairContract(uFactory, token0.address, token1.address)
     sPair = await getPairContract(sFactory, token0.address, token1.address)
@@ -256,3 +256,8 @@ const executeTrade = async (_routerPath, _token0Contract, _token1Contract) => {
 }
 
 main()
+.then(() => process.exit(0))
+.catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
