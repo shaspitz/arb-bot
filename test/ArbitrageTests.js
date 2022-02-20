@@ -1,8 +1,11 @@
 const { expect } = require("chai");
 const config = require("../config.json");
+const { ChainId, Token, WETH } = require("@uniswap/sdk");
+const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { ethers } = require("hardhat");
+const { manipulateTestNetPrice } = require("../scripts/manipulateTestNetPrice");
 
 // From: https://hardhat.org/tutorial/debugging-with-hardhat-network.html
 // Hardhat comes built-in with Hardhat Network, a local Ethereum network
@@ -10,13 +13,14 @@ const { ethers } = require("hardhat");
 // run your tests and debug your code. It's the default network Hardhat connects to,
 // so you don't need to setup anything for it to work. Just run your tests.
 
-before(async () => {
+let signers;
+beforeEach(async () => {
   const uniSwapFactory = await ethers.getContractAt(IUniswapV2Factory.abi, config.UNISWAP.FACTORY_ADDRESS);
   const sushiSwapFactory = await ethers.getContractAt(IUniswapV2Factory.abi, config.SUSHISWAP.FACTORY_ADDRESS);
   const uniSwapRouter = await ethers.getContractAt(IUniswapV2Router02.abi, config.UNISWAP.V2_ROUTER_02_ADDRESS);
-  const sushiSwapRouter = await ethers.getContractAt(IUniswapV2Router02.abi, config.SUSHISWAP.V2_ROUTER_02_ADDRESS)
+  const sushiSwapRouter = await ethers.getContractAt(IUniswapV2Router02.abi, config.SUSHISWAP.V2_ROUTER_02_ADDRESS);
+  signers = await ethers.getSigners();
 })
-
 
 describe("Arbitrage contract", async function () {
   it("Test token to market Id mapping.", async function () {
@@ -31,6 +35,24 @@ describe("Arbitrage contract", async function () {
 
 describe("Local price manipulator", async function() {
   it("Test local network price manipulation functionality.", async function () {
+    
+    const erc20Address = process.env.ARB_AGAINST;
+    const erc20Contract = await ethers.getContractAt(erc20Abi, erc20Address);
+
+    const token = new Token( // From uniswap sdk.
+      ChainId.MAINNET,
+      erc20Address,
+      18, // 18 decimal token.
+      await erc20Contract.symbol(),
+      await erc20Contract.name(),
+    );
+
+    const signer = signers[1]; // ! 0? 
+
+    const test = manipulateTestNetPrice(token, signer);
+
+
+
     // TODO: Test local net price manipulation. 
   })
 })
