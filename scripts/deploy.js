@@ -27,8 +27,11 @@ async function main() {
     // With hardhat-ethers plugin, contract is deployed by first signer by default.
     const deployedContract = await flashLoanContract.deploy();
   
-    console.log("contract address:", deployedContract.address);
-  
+    console.log("flash loan contract address:", deployedContract.address);
+
+    if (config.PROJECT_SETTINGS.isLocal) {
+      // may need to deploy DEFI contracts here? 
+    }
   }
   
   main()
