@@ -6,7 +6,7 @@ const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 const { ethers } = require("hardhat");
-const { getPairContract, calculatePrice } = require("../helpers/helpers");
+// const { getPairContract, calculatePrice } = require("../helpers/helpers");
 
 // Impersonation account config, see etherscan for more details.
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
@@ -54,7 +54,7 @@ async function setupAndManipulatePrice() {
     // Fetch price of SHIB/WETH before we execute the swap.
     const priceBefore = await calculatePrice(pairContract);
 
-    await manipulateTestNetPrice(token, account, wallet);
+    await manipulateTestNetPrice(erc20Contract, account, signer);
 
     // Fetch price of SHIB/WETH after the swap.
     const priceAfter = await calculatePrice(pairContract);
@@ -85,9 +85,9 @@ async function impersonateWhaleAccount() {
 /**
  * @param {erc20Contract} Contract for ERC20 token that we're arbing against, assumed already signed.
  * @param {router} DEX router to execute exchange, assumed already signed.
- * @param {signer} Account to recieve funds.
+ * @param {account} Account to recieve funds.
  */
-async function manipulatePrice(erc20contract, router, signer) {
+async function manipulatePrice(erc20contract, router, account) {
     const tokenSymbol = await erc20contract.symbol();
     const wEthSymbol = WETH[chainId].symbol;
     console.log(`\nBeginning Swap...\n`);
@@ -102,7 +102,7 @@ async function manipulatePrice(erc20contract, router, signer) {
     await erc20contract.approve(router.address, amountInSmallestDecimal);
     
     const receipt = await router.swapExactTokensForTokens(
-        amountInSmallestDecimal, 0, path, signer.address, deadline, options);
+        amountInSmallestDecimal, 0, path, account.address, deadline, options);
 
     console.log(`Swap Complete!\n`);
 
@@ -110,6 +110,7 @@ async function manipulatePrice(erc20contract, router, signer) {
 }
 
 module.exports = {
+    AMOUNT,
     setupAndManipulatePrice,
     impersonateWhaleAccount,
     manipulatePrice,
