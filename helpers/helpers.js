@@ -18,6 +18,7 @@ async function getProvider() {
 }
 
 async function getTokenAndContract(_token0Address, _token1Address) {
+    // ! Need to update.
     const token0Contract = new web3.eth.Contract(IERC20.abi, _token0Address)
     const token1Contract = new web3.eth.Contract(IERC20.abi, _token1Address)
 
@@ -40,32 +41,35 @@ async function getTokenAndContract(_token0Address, _token1Address) {
     return { token0Contract, token1Contract, token0, token1 }
 }
 
-async function getPairAddress(_V2Factory, _token0, _token1) {
-    const pairAddress = await _V2Factory.methods.getPair(_token0, _token1).call()
-    return pairAddress
+// ! TODO: comments all around these methods. 
+
+
+async function getPairAddress(factoryContract, token0, token1) {
+    return factoryContract.getPair(token0, token1);
 }
 
-async function getPairContract(_V2Factory, _token0, _token1) {
-    const pairAddress = await getPairAddress(_V2Factory, _token0, _token1)
-    const pairContract = new web3.eth.Contract(IUniswapV2Pair.abi, pairAddress)
-    return pairContract
+async function getPairContract(factoryContract, token0, token1, signer) { 
+    const pairAddress = await getPairAddress(factoryContract, token0, token1);
+    return new ethers.Contract(pairAddress, IUniswapV2Pair.abi, signer);
 }
 
-async function getReserves(_pairContract) {
-    const reserves = await _pairContract.methods.getReserves().call()
-    return [reserves.reserve0, reserves.reserve1]
+async function getReserves(pairContract) {
+    const reserves = await pairContract.getReserves();
+    return [reserves.reserve0, reserves.reserve1];
 }
 
-async function calculatePrice(_pairContract) {
-    const [reserve0, reserve1] = await getReserves(_pairContract)
-    return Big(reserve0).div(Big(reserve1)).toString()
+async function calculatePrice(pairContract) {
+    const [reserve0, reserve1] = await getReserves(pairContract);
+    return Big(reserve0).div(Big(reserve1)).toString();
 }
 
 function calculateDifference(uPrice, sPrice) {
+    // ! Need to update.
     return (((uPrice - sPrice) / sPrice) * 100).toFixed(2)
 }
 
 async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
+    // ! Need to update. 
     const trade1 = await _routerPath[0].methods.getAmountsOut(amount, [_token0.address, _token1.address]).call()
     const trade2 = await _routerPath[1].methods.getAmountsOut(trade1[1], [_token1.address, _token0.address]).call()
 
