@@ -6,7 +6,7 @@ const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 const { ethers } = require("hardhat");
-const { getPairContract, calculatePrice, getProvider } = require("../helpers/helpers");
+const { getPairContract, calculatePrice, getProvider, warnAboutEphemeralNetwork } = require("../helpers/helpers");
 
 // Impersonation account config, see etherscan for more details.
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
@@ -20,6 +20,8 @@ const GAS = 450000;
  */
 async function setupAndManipulatePrice() {
 
+    warnAboutEphemeralNetwork();
+
     const signer = await impersonateWhaleAccount();
 
     // Instantiate contract objects.
@@ -30,7 +32,7 @@ async function setupAndManipulatePrice() {
     const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
     // Arbitrage will be against given ERC20 token.
-    const wEthContract = await ethers.getContractAt(erc20Abi, WETH[chainId].address, signer);
+    const wEthContract = new ethers.Contract(WETH[chainId].address, erc20Abi, signer);
 
     // TODO: make this functionality better. 
     const factoryToUse = uniSwapFactory;
@@ -62,7 +64,7 @@ async function setupAndManipulatePrice() {
     let balance = await wEthContract.balanceOf(account);
     balanceInWEth = ethers.utils.formatEther(balance.toString());
 
-    console.log(`\nBalance in reciever account: ${balanceInWEth} WETH.\n`);
+    console.log(`\nBalance in reciever account[${account}]: ${balanceInWEth} WETH.\n`);
 
     return {priceBefore, priceAfter};
 }

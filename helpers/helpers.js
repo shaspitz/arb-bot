@@ -6,8 +6,14 @@ const { ChainId, Token } = require("@uniswap/sdk");
 const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
 const IERC20 = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 
-// TODO: need to populate this within each function.
-let provider;
+async function warnAboutEphemeralNetwork() {
+    if (network.name === "hardhat") {
+        console.warn(
+            "You are using the Hardhat Network, which gets automatically created and destroyed every time." +
+            " Use the Hardhat option \"--network localhost\" if running outside of tests."
+        );
+    }
+}
 
 // ! Should I use get default provider here? 
 async function getProvider() {
@@ -80,6 +86,7 @@ async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
 }
 
 module.exports = {
+    warnAboutEphemeralNetwork,
     getProvider,
     getTokenAndContract,
     getPairAddress,
