@@ -42,7 +42,10 @@ describe("Manipulate price method.", async function () {
 
 describe("Entire setup and module for price manipulation.", async function () { 
     it("Local price manipulation is sane and actually creates an arb opportunity", async function () {
-        // TODO: assert tests here besides just the function running w/o error. 
-        const test = await setupAndManipulatePrice();
+        const {priceBefore, priceAfter} = await setupAndManipulatePrice();
+        // We're dumping SHIB, so WETH/SHIB price should go up.
+        priceMultiplier = priceAfter / priceBefore;
+        console.log("Price multiplier from dumping SHIB", priceMultiplier);
+        expect(priceMultiplier).to.be.greaterThan(1.5);
     });
 });

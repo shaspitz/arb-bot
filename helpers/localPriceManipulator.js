@@ -10,8 +10,8 @@ const { getPairContract, calculatePrice, getProvider } = require("../helpers/hel
 
 // Impersonation account config, see etherscan for more details.
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
-// TODO: find a better way to represent this shib, whale is selling today, lol.
-const AMOUNT = "3600000000000"; // 36,000,000,000,000 SHIB are held by this whale account.
+// TODO: find a better way to manipulate price? This hardcoded number changes if using most recent blocks.
+const AMOUNT = "3600000000000"; // Whale account has enough SHIB to go around.
 const GAS = 450000;
 
 /**
@@ -63,6 +63,8 @@ async function setupAndManipulatePrice() {
     balanceInWEth = ethers.utils.formatEther(balance.toString());
 
     console.log(`\nBalance in reciever account: ${balanceInWEth} WETH.\n`);
+
+    return {priceBefore, priceAfter};
 }
 /**
  * @returns A whale account signer from accountToImpersonate globally defined above.
