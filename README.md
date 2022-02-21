@@ -21,6 +21,6 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
  - Neat React front-end
  - Find inspiration for data pipelines
- - refactor given code to be OOP based
+ - Learn about hardhat tasks, see where they'd have use here. 
  - Write up TDD here and setup instructions, maybe draw out FSM 
  - Ideally make this super portable for new DEXs
