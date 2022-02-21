@@ -3,10 +3,9 @@ const config = require("../config.json");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const { ethers } = require("hardhat");
-const { manipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
+const { manipulatePrice, AMOUNT, setupAndManipulatePrice } = require("../helpers/localPriceManipulator");
 
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
-
 let
 signer,
 erc20Contract,
@@ -43,5 +42,6 @@ describe("Manipulate price method.", async function () {
 
 describe("Entire setup and module for price manipulation.", async function () { 
     it("Local price manipulation is sane and actually creates an arb opportunity", async function () {
+        const test = setupAndManipulatePrice();
     });
 });

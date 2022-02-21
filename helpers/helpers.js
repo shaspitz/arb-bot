@@ -1,19 +1,21 @@
 require("dotenv").config();
 const config = require("../config.json")
+const Big = require("big.js");
+const { ethers, waffle } = require("hardhat");
+const { ChainId, Token } = require("@uniswap/sdk");
+const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
+const IERC20 = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 
-const Big = require('big.js');
-const Web3 = require('web3');
-let web3
+// TODO: need to populate this within each function.
+let provider;
 
-if (!config.PROJECT_SETTINGS.isLocal) {
-    web3 = new Web3(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`)
-} else {
-    web3 = new Web3('ws://127.0.0.1:7545')
+// ! Should I use get default provider here? 
+async function getProvider() {
+    if (config.PROJECT_SETTINGS.isLocal) 
+        return waffle.provider;
+    // TODO: determine if this prod url is correct. 
+    return new ethers.providers.JsonRpcProvider("wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}");
 }
-
-const { ChainId, Token } = require("@uniswap/sdk")
-const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json")
-const IERC20 = require('@openzeppelin/contracts/build/contracts/ERC20.json')
 
 async function getTokenAndContract(_token0Address, _token1Address) {
     const token0Contract = new web3.eth.Contract(IERC20.abi, _token0Address)
@@ -74,6 +76,7 @@ async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
 }
 
 module.exports = {
+    getProvider,
     getTokenAndContract,
     getPairAddress,
     getPairContract,

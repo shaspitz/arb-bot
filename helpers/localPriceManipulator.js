@@ -5,8 +5,8 @@ const chainId = ChainId.MAINNET;
 const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV2Router02.json");
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
-const { ethers } = require("hardhat");
-// const { getPairContract, calculatePrice } = require("../helpers/helpers");
+const { ethers, waffle } = require("hardhat");
+const { getPairContract, calculatePrice, getProvider } = require("../helpers/helpers");
 
 // Impersonation account config, see etherscan for more details.
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
@@ -36,20 +36,22 @@ async function setupAndManipulatePrice() {
     const factoryToUse = uniSwapFactory;
     const routerToUse = uniSwapRouter;
 
-    const accounts = await ethers.listAccounts();
+    const provider = await getProvider();
+    const accounts = await provider.listAccounts();
+    console.log(accounts)
 
     // This will be the account to recieve WETH after we perform the swap to manipulate price.
     const account = accounts[1]; // ! 0 index? 
 
-    const pairContract = await getPairContract(factoryToUse, erc20Address, WETH[chainId].address);
+    const pairContract = await getPairContract(factoryToUse, process.env.ARB_AGAINST, WETH[chainId].address);
 
-    const token = new Token( // Uniswap sdk token obj. 
-        ChainId.MAINNET,
-        erc20Address,
-        18, // 18 decimal token.
-        await erc20Contract.symbol(), 
-        await erc20Contract.name(),
-    );
+    // const token = new Token( // Uniswap sdk token obj. 
+    //     ChainId.MAINNET,
+    //     erc20Address,
+    //     18, // 18 decimal token.
+    //     await erc20Contract.symbol(), 
+    //     await erc20Contract.name(),
+    // );
 
     // Fetch price of SHIB/WETH before we execute the swap.
     const priceBefore = await calculatePrice(pairContract);
