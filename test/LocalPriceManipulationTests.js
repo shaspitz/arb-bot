@@ -3,7 +3,7 @@ const config = require("../config.json");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const { ethers } = require("hardhat");
-const { manipulatePrice } = require("../scripts/localPriceManipulator");
+const { manipulatePrice } = require("../helpers/localPriceManipulator");
 
 const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
 
