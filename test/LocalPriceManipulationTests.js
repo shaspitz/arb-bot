@@ -42,6 +42,7 @@ describe("Manipulate price method.", async function () {
 
 describe("Entire setup and module for price manipulation.", async function () { 
     it("Local price manipulation is sane and actually creates an arb opportunity", async function () {
+        // TODO: assert tests here besides just the function running w/o error. 
         const test = await setupAndManipulatePrice();
     });
 });

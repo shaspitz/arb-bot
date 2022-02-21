@@ -13,7 +13,6 @@ const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";
 // TODO: find a better way to represent this shib, whale is selling today, lol.
 const AMOUNT = "3600000000000"; // 36,000,000,000,000 SHIB are held by this whale account.
 const GAS = 450000;
-let signer;
 
 /**
  * Manipulates the price of a relevant token pair, to properly test arbitrage opportunities
@@ -21,7 +20,7 @@ let signer;
  */
 async function setupAndManipulatePrice() {
 
-    signer = await impersonateWhaleAccount();
+    const signer = await impersonateWhaleAccount();
 
     // Instantiate contract objects.
     const uniSwapFactory = new ethers.Contract(UNISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
