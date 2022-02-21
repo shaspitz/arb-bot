@@ -18,13 +18,12 @@ const { ethers } = require("hardhat");
 
 // const { getPairContract, calculatePrice } = require("../helpers/helpers");
 
-// User config.
-const UNLOCKED_ACCOUNT = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb"; // SHIB Unlocked Account.
-// TODO: make this amount configurable.
-const AMOUNT = "40500000000000"; // 40,500,000,000,000 SHIB -- Tokens will automatically be converted to wei
+// Impersonation account config, see etherscan for more details.
+const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
+const AMOUNT = "36000000000000"; // 36,000,000,000,000 SHIB are held by this whale account.
 const GAS = 450000;
 
-const wallet = new ethers.Wallet(UNLOCKED_ACCOUNT); 
+// const wallet = new ethers.Wallet(UNLOCKED_ACCOUNT); 
 
 async function SetupAndManipulatePrice() {
 
@@ -81,8 +80,8 @@ async function SetupAndManipulatePrice() {
 }
 
 /**
- * TODO: summary.
- * @param {erc20Contract} Uniswap sdk object for ERC20 token contract. 
+ * @param {erc20Contract} Contract for ERC20 token that we're arbing against, assumed already signed.
+ * @param {router} DEX router to execute exchange, assumed already signed.
  * @param {signer} Account to recieve funds.
  */
 async function manipulatePrice(erc20contract, router, signer) {
@@ -92,26 +91,15 @@ async function manipulatePrice(erc20contract, router, signer) {
     console.log(`Input Token: ${tokenSymbol}`);
     console.log(`Output Token: ${wEthSymbol}\n`);
 
-    console.log("got here")
-
-    let balance = await erc20contract.balanceOf(signer.address);
-    console.log(balance)
-
-    const amountInSmallestDecimal = ethers.utils.parseUnits(AMOUNT.toString(), "ether"); // ! confirm this works.
+    const amountInSmallestDecimal = ethers.utils.parseUnits(AMOUNT.toString(), "ether"); 
     const path = [erc20contract.address, WETH[chainId].address];
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes.
     const options = { gasLimit: GAS };
 
-
-    console.log(signer.address)
-    console.log(UNLOCKED_ACCOUNT)
-
     await erc20contract.approve(router.address, amountInSmallestDecimal);
-    // !
-    // ! You're close, the contract keeps saying "transfer funds failed" tho
+    
     const receipt = await router.swapExactTokensForTokens(
         amountInSmallestDecimal, 0, path, signer.address, deadline, options);
-        // ! might need to pass in unlocked account in new contract with new signer ?
 
     console.log(`Swap Complete!\n`);
 
@@ -121,4 +109,4 @@ async function manipulatePrice(erc20contract, router, signer) {
 module.exports = {
     SetupAndManipulatePrice,
     manipulatePrice,
-}
+};
