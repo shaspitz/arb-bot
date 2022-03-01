@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const config = require('../config.json');
 
 // From: https://hardhat.org/tutorial/debugging-with-hardhat-network.html
 // Hardhat comes built-in with Hardhat Network, a local Ethereum network
@@ -9,9 +10,17 @@ const { ethers } = require("hardhat");
 
 describe("Arbitrage contract", async function () {
   it("Test token to market Id mapping.", async function () {
-    const flashLoanContract = await ethers.getContractFactory("DyDxFlashLoan");
+    // Use contract factory instead of instantiating ethers.Contract object,
+    // since the relevant contract is not already deployed.
+    // Note: real deploys should use contract factory constructor instead of "getContractFactory". 
+
+    const flashLoanContract = await ethers.getContractFactory("Arbitrage");
+    
     // With hardhat-ethers plugin, contract is deployed to first signer by default.
-    const deployedContract = await flashLoanContract.deploy();
+    const deployedContract = await flashLoanContract.deploy(
+      config.SUSHISWAP.V2_ROUTER_02_ADDRESS, 
+      config.UNISWAP.V2_ROUTER_02_ADDRESS
+    );
     const wethAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     const marketId = await deployedContract.tokenToMarketId(wethAddress);
     expect(marketId).to.equal(0);
