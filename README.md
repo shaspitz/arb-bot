@@ -23,5 +23,5 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
  - Neat React front-end
  - Find inspiration for data pipelines
  - Learn about hardhat tasks, see where they'd have use here. 
- - Write up TDD here and setup instructions, maybe draw out FSM 
+ - Write up TDD here and setup instructions, maybe draw out FSM, write out proper workflow of setting up arb in simulation, executing bot, etc. 
  - Ideally make this super portable for new DEXs
