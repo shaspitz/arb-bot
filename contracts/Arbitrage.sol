@@ -59,6 +59,11 @@ interface Structs {
     }
 }
 
+// ! You can swap out this class for use of AAVE if you really want to understand Solidity code.
+// I believe that operate doesn't need to be defined herein because it's from an external contract?
+// External contract defined here https://etherscan.io/address/0x1e0447b19bb6ecfdae1e4ae1694b0c3659614e4e#code
+// can prob be imported tbh.   
+
 abstract contract DyDxPool is Structs {
     function getAccountWei(Info memory account, uint256 marketId)
         public
@@ -94,7 +99,7 @@ contract DyDxFlashLoan is Structs {
         return marketId - 1;
     }
 
-    // the DyDx will call `callFunction(address sender, Info memory accountInfo, bytes memory data) public` after during `operate` call
+    // the DyDx will call `callFunction(address sender, Info memory accountInfo, bytes memory data) public` during `operate` call
     function flashloan(
         address token,
         uint256 amount,
@@ -204,6 +209,8 @@ contract Arbitrage is DyDxFlashLoan {
 
         path[0] = token0;
         path[1] = token1;
+
+        // TODO: these are same functions, just diff addresses
 
         if (startOnUniswap) {
             _swapOnUniswap(path, flashAmount, 0);

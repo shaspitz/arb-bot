@@ -18,3 +18,6 @@ describe("Arbitrage contract", async function () {
   });
 });
 
+// ! It may be less beneficial to simulate swap events in sim than you thought..
+// ! You could instead just run the contract on mainnet and try out different params
+// ! Maybe both methods of testing are useful? 
