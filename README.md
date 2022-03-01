@@ -15,6 +15,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 8. Determine if ```bot.js``` should be ran with Node.js or hardhat to properly talk with the local network. 
  
  ## TODOs
+ - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
  - Split out solidity code into multiple files. 
  - Consider using front-end template here https://github.com/NomicFoundation/hardhat-hackathon-boilerplate/tree/master/frontend
