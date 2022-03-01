@@ -16,6 +16,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
  
  ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
+ - Watch or attend flash loan masterclass, see where it can be applied to this proj
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
  - Split out solidity code into multiple files. 
  - Consider using front-end template here https://github.com/NomicFoundation/hardhat-hackathon-boilerplate/tree/master/frontend
