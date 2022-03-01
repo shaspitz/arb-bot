@@ -14,7 +14,18 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Determine if ```bot.js``` should be ran with Node.js or hardhat to properly talk with the local network. 
  
- ## TODOs
+## Design
+
+## Tests
+Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
+
+```LocalPriceManipulationTests.js```: First forks the Ethereum network, specified by a block in the hardhat configuration file. This is achieved via the Alchemy API. We then execute a JSON RPC to the local hardhat test provider to impersonate a specific ethereum account; a whale with enough relevant ERC20 tokens to manipulate the price of a token pair on a DEX contract already deployed to our local test network. The manipulation of price by dumping a large amount of tokens is tested and verified. Note, this functionality is only included to create arbitrage opportunities within a local testing environment.     
+
+```ArbitrageTests.js```: Verifies functionality for the arbitrage contract, and how it interacts with the DYDX DEX contract. In progress...
+
+```botTests.js```: Verifies that the arb bot detects and appropriately acts on arbitrage opportunities as they arise. In progress...
+
+## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
  - Watch or attend flash loan masterclass, see where it can be applied to this proj
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
