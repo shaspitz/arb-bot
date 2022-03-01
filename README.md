@@ -14,12 +14,13 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Determine if ```bot.js``` should be ran with Node.js or hardhat to properly talk with the local network. 
  
- TODOs:
+ ## TODOs
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
+ - Split out solidity code into multiple files. 
  - Consider using front-end template here https://github.com/NomicFoundation/hardhat-hackathon-boilerplate/tree/master/frontend
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
  - Neat React front-end
  - Find inspiration for data pipelines
- - refactor given code to be OOP based
+ - Learn about hardhat tasks, see where they'd have use here. 
  - Write up TDD here and setup instructions, maybe draw out FSM 
  - Ideally make this super portable for new DEXs
