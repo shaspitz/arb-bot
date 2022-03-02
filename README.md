@@ -30,9 +30,7 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
  - Watch or attend flash loan masterclass, see where it can be applied to this proj
  - Unit test the arb contract and make sure loan goes through.
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
- - Consider using front-end template here https://github.com/NomicFoundation/hardhat-hackathon-boilerplate/tree/master/frontend
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
- - Neat React front-end
  - Find inspiration for data pipelines
  - Learn about hardhat tasks, see where they'd have use here. 
  - Write up TDD here and setup instructions, maybe draw out FSM, write out proper workflow of setting up arb in simulation, executing bot, etc. 
