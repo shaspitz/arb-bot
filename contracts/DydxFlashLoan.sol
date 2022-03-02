@@ -47,27 +47,18 @@ library Actions {
         uint256 otherAccountId;
         bytes data;
     }
-}
-
-library Misc {
     struct Info {
         address owner; // The address that owns the account
         uint256 number; // A nonce that allows a single address to control many accounts
     }
-
-    struct Wei {
-        bool sign; // true if positive
-        uint256 value;
-    }
 }
-
 
 // Interface for the solo margin contract deployed as https://etherscan.io/address/0x1e0447b19bb6ecfdae1e4ae1694b0c3659614e4e#code.
 interface ISoloMargin {
-    function operate(Misc.Info[] memory accounts, Actions.ActionArgs[] memory actions) external;
+    function operate(Account.Info[] memory accounts, Actions.ActionArgs[] memory actions) external;
 }
 
 // Interface for a contract to be callable after receiving a flash loan from the solo margin contract.
 interface ICallee {
-    function callFunction(address sender, Misc.Info memory accountInfo, bytes memory data) external;
+    function callFunction(address sender, Account.Info memory accountInfo, bytes memory data) external;
 }

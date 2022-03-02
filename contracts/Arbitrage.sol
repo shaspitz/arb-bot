@@ -52,10 +52,10 @@ contract Arbitrage is ICallee {
         bytes memory data
     ) internal {
         IERC20(token).approve(address(soloMargin), amount + 1);
-        Misc.Info[] memory infos = new Misc.Info[](1);
+        Account.Info[] memory infos = new Account.Info[](1);
         Actions.ActionArgs[] memory args = new Actions.ActionArgs[](3);
 
-        infos[0] = Misc.Info(address(this), 0);
+        infos[0] = Account.Info(address(this), 0);
 
         Types.AssetAmount memory wamt = Types.AssetAmount(
             false,
@@ -125,7 +125,7 @@ contract Arbitrage is ICallee {
     // This is the function called by dydx after giving us the loan.
     function callFunction(
         address, // Unused address parameter.
-        Misc.Info memory,  // Unused account info parameter.
+        Account.Info memory,  // Unused account info parameter.
         bytes memory data) external override onlySoloMargin {
 
         // Decode the passed variables from the data object.
