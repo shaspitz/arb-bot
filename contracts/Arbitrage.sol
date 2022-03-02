@@ -15,7 +15,7 @@ contract Arbitrage is ICallee {
 
     // The main dydx Solo Margin contract, abi:
     // https://github.com/dydxprotocol/solo/blob/master/migrations/deployed.json
-    ISoloMargin pool = ISoloMargin(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
+    ISoloMargin soloMargin = ISoloMargin(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
 
     address public WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     mapping(address => uint256) public currencies;
@@ -30,10 +30,9 @@ contract Arbitrage is ICallee {
         currencies[WETH] = 1;
     }
 
-    // ! TODO: Change name of this method. 
-    modifier onlyPool() {
+    modifier onlySoloMargin() {
         require(
-            msg.sender == address(pool),
+            msg.sender == address(soloMargin),
             "FlashLoan: could be called by solo margin contract only"
         );
         _;
@@ -52,7 +51,7 @@ contract Arbitrage is ICallee {
         uint256 amount,
         bytes memory data
     ) internal {
-        IERC20(token).approve(address(pool), amount + 1);
+        IERC20(token).approve(address(soloMargin), amount + 1);
         Misc.Info[] memory infos = new Misc.Info[](1);
         Actions.ActionArgs[] memory args = new Actions.ActionArgs[](3);
 
@@ -96,7 +95,7 @@ contract Arbitrage is ICallee {
 
         args[2] = deposit;
 
-        pool.operate(infos, args);
+        soloMargin.operate(infos, args);
     }
 
     function executeTrade(
@@ -127,7 +126,7 @@ contract Arbitrage is ICallee {
     function callFunction(
         address, // Unused address parameter.
         Misc.Info memory,  // Unused account info parameter.
-        bytes memory data) external override onlyPool {
+        bytes memory data) external override onlySoloMargin {
 
         // Decode the passed variables from the data object.
         (bool startOnUniswap, address token0, address token1, uint256 flashAmount,
