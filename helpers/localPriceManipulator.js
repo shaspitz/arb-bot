@@ -1,7 +1,6 @@
 require("dotenv").config();
 const { UNISWAP, SUSHISWAP } = require("../config.json");
 const { ChainId, WETH } = require("@uniswap/sdk");
-const chainId = ChainId.MAINNET;
 const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV2Router02.json");
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
@@ -9,10 +8,11 @@ const { ethers } = require("hardhat");
 const { getPairContract, calculatePrice, getProvider, warnAboutEphemeralNetwork } = require("../helpers/helpers");
 
 // Impersonation account config, see etherscan for more details.
-const accountToImpersonate = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
+const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
 // TODO: find a better way to manipulate price? This hardcoded number changes if using most recent blocks.
 const AMOUNT = "3600000000000"; // Whale account has enough SHIB to go around.
 const GAS = 450000;
+const CHAIN_ID = ChainId.MAINNET;
 
 /**
  * Manipulates the price of a relevant token pair, to properly test arbitrage opportunities
@@ -32,7 +32,7 @@ async function setupAndManipulatePrice() {
     const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
     // Arbitrage will be against given ERC20 token.
-    const wEthContract = new ethers.Contract(WETH[chainId].address, erc20Abi, signer);
+    const wEthContract = new ethers.Contract(WETH[CHAIN_ID].address, erc20Abi, signer);
 
     // TODO: make this functionality better. 
     const factoryToUse = uniSwapFactory;
@@ -44,7 +44,7 @@ async function setupAndManipulatePrice() {
     // This will be the account to recieve WETH after we perform the swap to manipulate price.
     const account = accounts[1]; // ! 0 index? 
     
-    const pairContract = await getPairContract(factoryToUse, process.env.ARB_AGAINST, WETH[chainId].address, signer);
+    const pairContract = await getPairContract(factoryToUse, process.env.ARB_AGAINST, WETH[CHAIN_ID].address, signer);
 
     // Fetch price of SHIB/WETH before we execute the swap.
     const priceBefore = await calculatePrice(pairContract);
@@ -56,8 +56,8 @@ async function setupAndManipulatePrice() {
 
     const ercSymbol = await erc20Contract.symbol(); 
     const data = {
-        'Price Before': `1 ${WETH[chainId].symbol} = ${Number(priceBefore).toFixed(0)} ${ercSymbol}`,
-        'Price After': `1 ${WETH[chainId].symbol} = ${Number(priceAfter).toFixed(0)} ${ercSymbol}`,
+        'Price Before': `1 ${WETH[CHAIN_ID].symbol} = ${Number(priceBefore).toFixed(0)} ${ercSymbol}`,
+        'Price After': `1 ${WETH[CHAIN_ID].symbol} = ${Number(priceAfter).toFixed(0)} ${ercSymbol}`,
     }
     console.table(data);
 
@@ -69,15 +69,15 @@ async function setupAndManipulatePrice() {
     return {priceBefore, priceAfter};
 }
 /**
- * @returns A whale account signer from accountToImpersonate globally defined above.
+ * @returns A whale account signer from ACCOUNT_TO_IMPERSONATE globally defined above.
  */
 async function impersonateWhaleAccount() {
     // Hardhat's method of impersonating a whale account. See https://hardhat.org/hardhat-network/reference/#hardhat-impersonateaccount.
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
-        params: [accountToImpersonate],
+        params: [ACCOUNT_TO_IMPERSONATE],
     });
-    return ethers.getSigner(accountToImpersonate);
+    return ethers.getSigner(ACCOUNT_TO_IMPERSONATE);
 }
 
 /**
@@ -87,13 +87,13 @@ async function impersonateWhaleAccount() {
  */
 async function manipulatePrice(erc20contract, router, addressToRecieve) {
     const tokenSymbol = await erc20contract.symbol();
-    const wEthSymbol = WETH[chainId].symbol;
+    const wEthSymbol = WETH[CHAIN_ID].symbol;
     console.log(`\nBeginning Swap...\n`);
     console.log(`Input Token: ${tokenSymbol}`);
     console.log(`Output Token: ${wEthSymbol}\n`);
 
     const amountInSmallestDecimal = ethers.utils.parseUnits(AMOUNT.toString(), "ether"); 
-    const path = [erc20contract.address, WETH[chainId].address];
+    const path = [erc20contract.address, WETH[CHAIN_ID].address];
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes.
     const options = { gasLimit: GAS };
 
