@@ -23,11 +23,12 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
 
 ```ArbitrageTests.js```: Verifies functionality for the arbitrage contract, and how it interacts with various deployed contracts. In progress...
 
-```botTests.js```: Verifies that the arb bot detects and appropriately acts on arbitrage opportunities as they arise. In progress...
+```BotTests.js```: Verifies that the arb bot detects and appropriately acts on arbitrage opportunities as they arise. In progress...
 
 ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
  - Understand bot.js more, and fully port over the entire script and helpers. Mainly, need to figure out how to determine "FlashAmount". In the unit tests for arb, the flash amount is essentially arbitrary. How do we choose that value? 
+- make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different (private) arb strategies.
  - setup deploy script for actual deployments, make it easy to deploy to different chains
  - Watch or attend flash loan masterclass, see where it can be applied to this proj
  - Finish porting over web3 refs to ethers. Unit test more and more of bot.js functionality. 
