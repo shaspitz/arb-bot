@@ -9,15 +9,19 @@ import "./FlashLoan.sol";
 
 contract Arbitrage is FlashLoan {
 
-    IUniswapV2Router02 public immutable sRouter;
-    IUniswapV2Router02 public immutable uRouter;
+    // See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02
+    IUniswapV2Router02 public immutable sushiSwapRouter;
+    IUniswapV2Router02 public immutable uniSwapRouter;
 
     // Deployer of the contract, meaning profit will goto this account no matter who calls the arb function!
     address public owner;
 
-    constructor(address _sRouter, address _uRouter) {
-        sRouter = IUniswapV2Router02(_sRouter); // Sushiswap.
-        uRouter = IUniswapV2Router02(_uRouter); // Uniswap.
+    // int addeded to current block Unix timestamp, after which DEX swap transaction will revert.
+    uint private constant swapDeadline = 1200;
+
+    constructor(address sushiSwapRouterAddress, address uniSwapRouterAddress) { 
+        sushiSwapRouter = IUniswapV2Router02(sushiSwapRouterAddress); 
+        uniSwapRouter = IUniswapV2Router02(uniSwapRouterAddress); 
         owner = msg.sender;
     }
 
@@ -29,24 +33,25 @@ contract Arbitrage is FlashLoan {
         _;
     }
 
+    // Bot should call this function when arb trade is detected. 
     function executeTrade(
-        bool _startOnUniswap,
-        address _token0,
-        address _token1,
-        uint256 _flashAmount
+        bool startOnUniswap, // Whether first swap should be in uniswap.
+        address token0, // Start of swap path, flash loan denominated in this token.
+        address token1, // Intermediary token.
+        uint256 flashAmount // Amount of token0 to borrow.
     ) external {
-        uint256 balanceBefore = IERC20(_token0).balanceOf(address(this));
+        uint256 balanceBefore = IERC20(token0).balanceOf(address(this));
 
         // Arguments passed to dydx contract for use in "callFunction". 
         bytes memory data = abi.encode(
-            _startOnUniswap,
-            _token0,
-            _token1,
-            _flashAmount,
+            startOnUniswap,
+            token0, 
+            token1,
+            flashAmount,
             balanceBefore
         );
 
-        flashLoan(_token0, _flashAmount, data); // execution will goto "callFunction".
+        flashLoan(token0, flashAmount, data); // execution will goto "callFunction".
     }
 
     // This is the function called by dydx after giving us the loan.
@@ -62,86 +67,94 @@ contract Arbitrage is FlashLoan {
 
         uint256 balanceAfter = IERC20(token0).balanceOf(address(this));
 
+        // Sanity check that we recieved the loan.
         require(
             balanceAfter - balanceBefore == flashAmount,
             "Loan has failed!"
         );
 
-        // We now have the flashloan, use the money here!
-        address[] memory path = new address[](2);
-
-        path[0] = token0;
-        path[1] = token1;
-
-        // TODO: these are same functions, just diff addresses, make more modular. 
+        // Set token path for DEX call. See documentation below, path can potentially be > 2 token addresses. 
+        address[] memory tokenPath = new address[](2);
+        tokenPath[0] = token0;
+        tokenPath[1] = token1;
 
         if (startOnUniswap) {
-            _swapOnUniswap(path, flashAmount, 0);
+            // Swap token pair on uniswap first.
+            swapOnUniswap(tokenPath, flashAmount, 0);
 
-            path[0] = token1;
-            path[1] = token0;
+            // Path is now flipped for other DEX.
+            tokenPath[0] = token1;
+            tokenPath[1] = token0;
 
-            _swapOnSushiswap(
-                path,
+            // Swap back token pair, hoping for profit.
+            swapOnSushiswap(
+                tokenPath,
                 IERC20(token1).balanceOf(address(this)),
-                (flashAmount + 1)
+                (flashAmount + 1) 
             );
+        // Same process as above, but starting with SushiSwap.
         } else {
-            _swapOnSushiswap(path, flashAmount, 0);
+            swapOnSushiswap(tokenPath, flashAmount, 0);
 
-            path[0] = token1;
-            path[1] = token0;
+            tokenPath[0] = token1;
+            tokenPath[1] = token0;
 
-            _swapOnUniswap(
-                path,
+            swapOnUniswap(
+                tokenPath,
                 IERC20(token1).balanceOf(address(this)),
                 (flashAmount + 1)
             );
         }
 
+        // Transfer arb profit to owning account.
+        console.log("TODO: determine fee for using the flash loan! 1 or 2? Then make consistent across both contracts");
         IERC20(token0).transfer(
             owner,
             IERC20(token0).balanceOf(address(this)) - (flashAmount + 1)
         );
     }
 
-    // Internal functions.
-
-    function _swapOnUniswap(
-        address[] memory _path,
-        uint256 _amountIn,
-        uint256 _amountOut
+    // Swaps an exact amount of input tokens for as many output tokens as possible,
+    // along given path for Uniswap exchange.
+    // Both uniswap and sushiswap implement the "swapExactTokensForTokens" function. 
+    // See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokens.
+    function swapOnUniswap(
+        address[] memory tokenPath,
+        uint256 amountIn,
+        uint256 amountOut
     ) internal {
         require(
-            IERC20(_path[0]).approve(address(uRouter), _amountIn),
+            IERC20(tokenPath[0]).approve(address(uniSwapRouter), amountIn),
             "Uniswap approval failed."
         );
 
-        uRouter.swapExactTokensForTokens(
-            _amountIn,
-            _amountOut,
-            _path,
+        uniSwapRouter.swapExactTokensForTokens(
+            amountIn,
+            amountOut,
+            tokenPath,
             address(this),
-            (block.timestamp + 1200)
+            (block.timestamp + swapDeadline) 
         );
     }
-
-    function _swapOnSushiswap(
-        address[] memory _path,
+    
+    // Swaps an exact amount of input tokens for as many output tokens as possible,
+    // along given path for Sushiswap exchange.
+    function swapOnSushiswap(
+        address[] memory _tokenPath,
         uint256 _amountIn,
         uint256 _amountOut
     ) internal {
         require(
-            IERC20(_path[0]).approve(address(sRouter), _amountIn),
+            IERC20(_tokenPath[0]).approve(address(sushiSwapRouter), _amountIn),
             "Sushiswap approval failed."
         );
 
-        sRouter.swapExactTokensForTokens(
+        sushiSwapRouter.swapExactTokensForTokens(
             _amountIn,
             _amountOut,
-            _path,
+            _tokenPath,
             address(this),
-            (block.timestamp + 1200)
+            (block.timestamp + swapDeadline) 
         );
     }
 }

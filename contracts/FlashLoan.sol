@@ -113,6 +113,7 @@ abstract contract FlashLoan is ICallee {
         console.log("Flash loan has started");
 
         // First give approval for dydx contract to pay loan back to itself. 
+        console.log("determine if you only need to approve loan amount itself, or add fee");
         IERC20(token).approve(address(soloMargin), loanAmount + 2); // TODO: is the fee 2 wei here or 1? Infinite approval? See https://gist.github.com/cryptoscopia/1156a368c19a82be2d083e04376d261e
 
         // We will pass three operations to flash loan contract.
@@ -137,20 +138,20 @@ abstract contract FlashLoan is ICallee {
         
         // Populate call action, pass neccessary data. 
         actions[1] = Actions.ActionArgs({
-                actionType: Actions.ActionType.Call,
-                accountId: 0,
-                amount: Types.AssetAmount({
-                    sign: false,
-                    denomination: Types.AssetDenomination.Wei,
-                    ref: Types.AssetReference.Delta,
-                    value: 0
-                }),
-                primaryMarketId: getMarketId(token), 
-                secondaryMarketId: 0,
-                otherAddress: address(this),
-                otherAccountId: 0,
-                data: data // This is where arbitrary data can be sent to callback.
-            });
+            actionType: Actions.ActionType.Call,
+            accountId: 0,
+            amount: Types.AssetAmount({
+                sign: false,
+                denomination: Types.AssetDenomination.Wei,
+                ref: Types.AssetReference.Delta,
+                value: 0
+            }),
+            primaryMarketId: getMarketId(token), 
+            secondaryMarketId: 0,
+            otherAddress: address(this),
+            otherAccountId: 0,
+            data: data // This is where arbitrary data can be sent to callback.
+        });
         
         // Populate deposit action, ERC20 approval given above. 
         actions[2] = Actions.ActionArgs({
