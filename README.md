@@ -27,12 +27,11 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
 
 ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
+ - Understand bot.js more, and fully port over the entire script and helpers. Mainly, need to figure out how to determine "FlashAmount". In the unit tests for arb, the flash amount is essentially arbitrary. How do we choose that value? 
  - setup deploy script for actual deployments, make it easy to deploy to different chains
  - Watch or attend flash loan masterclass, see where it can be applied to this proj
- - Unit test the arb contract and make sure loan goes through.
- - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 
+ - Finish porting over web3 refs to ethers. Unit test more and more of bot.js functionality. 
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
- - Find inspiration for data pipelines
  - Learn about hardhat tasks, see where they'd have use here. 
  - Write up TDD here and setup instructions, maybe draw out FSM, write out proper workflow of setting up arb in simulation, executing bot, etc. 
  - Ideally make this super portable for new DEXs
