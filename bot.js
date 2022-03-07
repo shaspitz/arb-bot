@@ -137,6 +137,8 @@ const determineProfitability = async (_routerPath, _token0Contract, _token0, _to
     // This is where you can customize your conditions on whether a profitable trade is possible.
     // This is a basic example of trading WETH/SHIB...
 
+    // TODO: Move intelligent logic to a private repo. Anyone can have this simple example tho.
+
     let reserves, exchangeToBuy, exchangeToSell
 
     if (_routerPath[0]._address == uRouter._address) {

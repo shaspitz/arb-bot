@@ -76,6 +76,11 @@ abstract contract FlashLoan is ICallee {
     address private wrappedEthAddress = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     mapping(address => uint256) private tokenToMarketId;
 
+    // Fee for flash loan through DYDX, in smallest decimal amount of relevant token.
+    // See: https://ethereumdev.io/making-a-flash-loan-with-solidity-aave-dy-dx-kollateral/
+    // for fee comparisons.
+    uint internal constant flashLoanFee = 2;
+
     constructor() {
         // Hardcode relevant market ids, add one to prevent the mapping returning default value of 0. 
         tokenToMarketId[wrappedEthAddress] = 0 + 1;
@@ -113,8 +118,7 @@ abstract contract FlashLoan is ICallee {
         console.log("Flash loan has started");
 
         // First give approval for dydx contract to pay loan back to itself. 
-        console.log("determine if you only need to approve loan amount itself, or add fee");
-        IERC20(token).approve(address(soloMargin), loanAmount + 2); // TODO: is the fee 2 wei here or 1? Infinite approval? See https://gist.github.com/cryptoscopia/1156a368c19a82be2d083e04376d261e
+        IERC20(token).approve(address(soloMargin), loanAmount + flashLoanFee); 
 
         // We will pass three operations to flash loan contract.
         Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](3);

@@ -27,6 +27,7 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
 
 ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
+ - setup deploy script for actual deployments, make it easy to deploy to different chains
  - Watch or attend flash loan masterclass, see where it can be applied to this proj
  - Unit test the arb contract and make sure loan goes through.
  - Finish porting over web3 refs to ethers. Unit test solidity code, and some of bot.js functionality. 

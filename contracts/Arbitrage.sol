@@ -60,6 +60,8 @@ contract Arbitrage is FlashLoan {
         Account.Info memory,  // Unused account info parameter.
         bytes memory data) external override onlySoloMargin {
 
+        console.log("callFunction has started.");
+
         // Decode the passed variables from the data object.
         (bool startOnUniswap, address token0, address token1, uint256 flashAmount,
             uint256 balanceBefore)
@@ -73,10 +75,16 @@ contract Arbitrage is FlashLoan {
             "Loan has failed!"
         );
 
+        console.log("Flash loan successful. Amount: ", balanceAfter - balanceBefore);
+
+        uint repayAmount = flashAmount + flashLoanFee;
+
         // Set token path for DEX call. See documentation below, path can potentially be > 2 token addresses. 
         address[] memory tokenPath = new address[](2);
         tokenPath[0] = token0;
         tokenPath[1] = token1;
+
+        // TODO: Does the minimum output amount of 0 tokens sent to DEX functions matter? 
 
         if (startOnUniswap) {
             // Swap token pair on uniswap first.
@@ -107,11 +115,16 @@ contract Arbitrage is FlashLoan {
         }
 
         // Transfer arb profit to owning account.
-        console.log("TODO: determine fee for using the flash loan! 1 or 2? Then make consistent across both contracts");
         IERC20(token0).transfer(
             owner,
-            IERC20(token0).balanceOf(address(this)) - (flashAmount + 1)
+            IERC20(token0).balanceOf(address(this)) - repayAmount 
         );
+
+        // Explicit error message is useful if loan cannot be repaid, DYDX doesn't provide this.
+        require(IERC20(token0).balanceOf(address(this)) >= repayAmount,
+            "Loan + Fee cannot be repayed. Transaction was reverted.");
+
+        // TODO: Should profit be payed out in ether? Not hard to make a conversion.
     }
 
     // Swaps an exact amount of input tokens for as many output tokens as possible,
@@ -121,7 +134,7 @@ contract Arbitrage is FlashLoan {
     function swapOnUniswap(
         address[] memory tokenPath,
         uint256 amountIn,
-        uint256 amountOut
+        uint256 amountOutMin
     ) internal {
         require(
             IERC20(tokenPath[0]).approve(address(uniSwapRouter), amountIn),
@@ -130,7 +143,7 @@ contract Arbitrage is FlashLoan {
 
         uniSwapRouter.swapExactTokensForTokens(
             amountIn,
-            amountOut,
+            amountOutMin,
             tokenPath,
             address(this),
             (block.timestamp + swapDeadline) 
@@ -140,19 +153,19 @@ contract Arbitrage is FlashLoan {
     // Swaps an exact amount of input tokens for as many output tokens as possible,
     // along given path for Sushiswap exchange.
     function swapOnSushiswap(
-        address[] memory _tokenPath,
-        uint256 _amountIn,
-        uint256 _amountOut
+        address[] memory tokenPath,
+        uint256 amountIn,
+        uint256 amountOutMin
     ) internal {
         require(
-            IERC20(_tokenPath[0]).approve(address(sushiSwapRouter), _amountIn),
+            IERC20(tokenPath[0]).approve(address(sushiSwapRouter), amountIn),
             "Sushiswap approval failed."
         );
 
         sushiSwapRouter.swapExactTokensForTokens(
-            _amountIn,
-            _amountOut,
-            _tokenPath,
+            amountIn,
+            amountOutMin,
+            tokenPath,
             address(this),
             (block.timestamp + swapDeadline) 
         );
