@@ -27,6 +27,7 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
 
 ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
+ - In general, maybe even future contract code should be kept private, disallowing people front running hard earned arb
  - Understand bot.js more, and fully port over the entire script and helpers. Mainly, need to figure out how to determine "FlashAmount". In the unit tests for arb, the flash amount is essentially arbitrary. How do we choose that value? 
 - make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different (private) arb strategies.
  - setup deploy script for actual deployments, make it easy to deploy to different chains
