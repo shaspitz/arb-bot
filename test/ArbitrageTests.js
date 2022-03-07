@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const config = require('../config.json');
+const { setupAndManipulatePrice } = require("../helpers/localPriceManipulator");
 
 // From: https://hardhat.org/tutorial/debugging-with-hardhat-network.html
 // Hardhat comes built-in with Hardhat Network, a local Ethereum network
@@ -25,6 +26,16 @@ describe("Arbitrage contract", async function () {
     const marketId = await deployedContract.getMarketId(wethAddress);
     expect(marketId).to.equal(0);
   });
+
+  before(async function () {
+  })
+
+  it("Test arb opportunity execution.", async function() {
+    // Assumes that uniswap price is manipulated, then we have an arb opportunity.
+    const {priceBefore, priceAfter} = await setupAndManipulatePrice();
+
+
+  })
 });
 
 // ! It may be less beneficial to simulate swap events in sim than you thought..

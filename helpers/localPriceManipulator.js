@@ -10,7 +10,7 @@ const { getPairContract, calculatePrice, getProvider, warnAboutEphemeralNetwork 
 // Impersonation account config, see etherscan for more details.
 const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
 // TODO: find a better way to manipulate price? This hardcoded number changes if using most recent blocks.
-const AMOUNT = "3600000000000"; // Whale account has enough SHIB to go around.
+const AMOUNT = "3000000000000"; // Whale account has enough SHIB to go around.
 const GAS = 450000;
 const CHAIN_ID = ChainId.MAINNET;
 
@@ -109,6 +109,7 @@ async function manipulatePrice(erc20contract, router, addressToRecieve) {
 
 module.exports = {
     AMOUNT,
+    ACCOUNT_TO_IMPERSONATE,
     setupAndManipulatePrice,
     impersonateWhaleAccount,
     manipulatePrice,
