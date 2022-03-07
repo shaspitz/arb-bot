@@ -4,7 +4,7 @@ const config = require('../config.json');
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 
-let deployedContract, arbAgainstContract, deployer;
+let deployedContract, arbForContract, deployer;
 before(async function () {
 
   // Use contract factory instead of instantiating ethers.Contract object,
@@ -17,6 +17,7 @@ before(async function () {
     config.SUSHISWAP.V2_ROUTER_02_ADDRESS, 
     config.UNISWAP.V2_ROUTER_02_ADDRESS
   );
+  
   [deployer] = await ethers.getSigners();
   arbForContract = new ethers.Contract(process.env.ARB_FOR, erc20Abi, deployer);
 })
