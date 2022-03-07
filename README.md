@@ -1,5 +1,5 @@
 # Arbitrage Bot
-Trading bot that utilizes Solidity contracts, in conjunction with decentralized exchanges, to execute token arbitrage opportunities on any EVM compatible blockchain. 
+Trading bot that utilizes custom Solidity contracts, in conjunction with decentralized exchange contracts, to execute token arbitrage opportunities on any EVM compatible blockchain. 
 
 ## Technologies
 Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
