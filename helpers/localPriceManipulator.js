@@ -11,7 +11,7 @@ const { getPairContract, calculatePrice, getProvider, warnAboutEphemeralNetwork 
 const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
 const AMOUNT = "3000000000000"; // Whale account has enough SHIB to go around.
 const GAS = 450000;
-const CHAIN_ID = ChainId.MAINNET;
+const CHAIN_ID = ChainId.MAINNET; // We've forked mainnet here. 
 
 /**
  * Manipulates the price of a relevant token pair, to properly test arbitrage opportunities
@@ -69,6 +69,7 @@ async function setupAndManipulatePrice() {
 
     return {priceBefore, priceAfter};
 }
+
 /**
  * @returns A whale account signer from ACCOUNT_TO_IMPERSONATE globally defined above.
  */
@@ -82,9 +83,11 @@ async function impersonateWhaleAccount() {
 }
 
 /**
- * @param {erc20Contract} Contract for ERC20 token that we're arbing against, assumed already signed.
- * @param {router} DEX router to execute exchange, assumed already signed.
- * @param {addressToRecieve} Address to recieve funds.
+ * Dumps tokens specified by given ERC20 contract, swapped for WETH that is sent to specified address.
+ * Creates an arbitrage opportunity to test against the bot.
+ * @param {} Contract for ERC20 token that we're arbing against, assumed already signed.
+ * @param {} DEX router to execute exchange, assumed already signed.
+ * @param {} Address to recieve funds.
  */
 async function manipulatePrice(erc20contract, router, addressToRecieve) {
     const tokenSymbol = await erc20contract.symbol();
