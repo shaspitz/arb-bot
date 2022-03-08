@@ -40,6 +40,24 @@ t yet have a contract deployed.
  
 ## Design
 
+## Anatomy of bot.js TODO: update from recent refactors
+The bot is essentially composed of 5 functions.
+- *main()*
+- *checkPrice()*
+- *determineDirection()*
+- *determineProfitability()*
+- *executeTrade()*
+
+The *main()* function monitors swap events from both Uniswap & Sushiswap. 
+
+When a swap event occurs, it calls *checkPrice()*, this function will log the current price of the assets on both Uniswap & Sushiswap, and return the **priceDifference**
+
+Then *determineDirection()* is called, this will determine where we would need to buy first, then sell. This function will return an array called **routerPath** in *main()*. The array contains Uniswap & Sushiswap's router contracts. If no array is returned, this means the **priceDifference** returned earlier is not higher than **difference**
+
+If **routerPath** is not null, then we move into *determineProfitability()*. This is where we set our conditions on whether there is a potential arbitrage or not. This function returns either true or false.
+
+If true is returned from *determineProfitability()*, then we call *executeTrade()* where we make our call to our arbitrage contract to perform the trade. Afterwards a report is logged, and the bot resumes to monitoring for swap events.
+
 ### Simple Strategy Overview
 The first-pass strategy implemented is only a simple example that goes along with the local price manipulation script. Essentially, after we manipulate price on Uniswap, we look at the reserves on Sushiswap and determine how much SHIB we need to buy on Uniswap to 'clear' out reserves on Sushiswap. Therefore the arbitrage direction is Uniswap -> Sushiswap. 
 
