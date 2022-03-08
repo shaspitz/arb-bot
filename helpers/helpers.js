@@ -50,9 +50,9 @@ async function getTokenAndContract(_token0Address, _token1Address) {
 /**
  * Gets a pair contract address given a uniswap factory contract and token pair.
  * See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/factory.
- * @param  {factoryContract} 
- * @param  {token0} 
- * @param  {token1} 
+ * @param  {} factoryContract
+ * @param  {} token0
+ * @param  {} token1
  */
 async function getPairAddress(factoryContract, token0, token1) {
     return factoryContract.getPair(token0, token1);
@@ -61,21 +61,32 @@ async function getPairAddress(factoryContract, token0, token1) {
 /**
  * Gets a pair contract from a relevant factory contract and token pair.
  * See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair.
- * @param  {factoryContract} 
- * @param  {token0} 
- * @param  {token1} 
- * @param  {signer} Input to the instantiated pair contract, if desired.
+ * @param  {} factoryContract
+ * @param  {} token0
+ * @param  {} token1
+ * @param  {} signer input to the instantiated pair contract, if desired.
  */
 async function getPairContract(factoryContract, token0, token1, signer) { 
     const pairAddress = await getPairAddress(factoryContract, token0, token1);
     return new ethers.Contract(pairAddress, IUniswapV2Pair.abi, signer);
 }
-
+/**
+ * Returns the reserves of token0 and token1 (implicit to a pair contract)
+ * used to price trades and distribute liquidity.
+ * https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair#getreserves.
+ * @param  {} pairContract
+ */
 async function getReserves(pairContract) {
     const reserves = await pairContract.getReserves();
     return [reserves.reserve0, reserves.reserve1];
 }
 
+/**
+ * Calculates the price of a token pair given that pair's contract,
+ * using the constant product formula, x*y=k. 
+ * See: https://docs.uniswap.org/protocol/V2/concepts/advanced-topics/pricing.
+ * @param  {} pairContract
+ */
 async function calculatePrice(pairContract) {
     const [reserve0, reserve1] = await getReserves(pairContract);
     return Big(reserve0).div(Big(reserve1)).toString();
