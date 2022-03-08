@@ -40,6 +40,11 @@ t yet have a contract deployed.
  
 ## Design
 
+### Simple Strategy Overview
+The first-pass strategy implemented is only shown as an example alongside with the local price manipulation script. Essentially, after we manipulate price on Uniswap, we look at the reserves on Sushiswap and determine how much SHIB we need to buy on Uniswap to 'clear' out reserves on Sushiswap. Therefore the arbitrage direction is Uniswap -> Sushiswap. 
+
+If arbitrage direction is swapped, this strategy can fall apart. At least in the case that Sushiswap has lower reserves than uniswap. TODO: this can prob be fixed with a simple check.
+
 ## Tests
 Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
 
