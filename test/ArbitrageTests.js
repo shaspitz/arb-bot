@@ -4,6 +4,9 @@ const config = require('../config.json');
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 
+const ARB_FOR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH address.
+const ARB_AGAINST = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"; // SHIB address.
+
 let deployedContract, arbForContract, deployer;
 before(async function () {
 
@@ -19,7 +22,7 @@ before(async function () {
   );
   
   [deployer] = await ethers.getSigners();
-  arbForContract = new ethers.Contract(process.env.ARB_FOR, erc20Abi, deployer);
+  arbForContract = new ethers.Contract(ARB_FOR, erc20Abi, deployer);
 })
 
 describe("Arbitrage contract", async function () {
@@ -30,11 +33,11 @@ describe("Arbitrage contract", async function () {
   });
 
   it("Test arb opportunity execution.", async function() {
-    // Assumes that uniswap price is manipulated, then we have an arb opportunity.
+    // Assumes that uniswap price is manipulated, then we have an arb opportunity against sushiswap.
     await setupAndManipulatePrice();
     const startOnUniswap = true;
-    const token0 = process.env.ARB_FOR; // WETH.
-    const token1 = process.env.ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.
+    const token0 = ARB_FOR;
+    const token1 = ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.
     console.log("TODO: hardcoded flash amount for now. Can prob unit test more of the profit finding" +
     " functionality from bot.js");
     const flashAmount = AMOUNT / 3; // eh for now lets say we are able to borrow some portion of what the whale dumped.
