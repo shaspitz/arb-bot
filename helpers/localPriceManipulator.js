@@ -99,8 +99,15 @@ async function manipulatePrice(erc20contract, router, addressToRecieve) {
 
     await erc20contract.approve(router.address, amountInSmallestDecimal);
     
+    // Both uniswap and sushiswap implement the "swapExactTokensForTokens" function. 
+    // See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokens.
     const receipt = await router.swapExactTokensForTokens(
-        amountInSmallestDecimal, 0, path, addressToRecieve, deadline, options);
+        amountInSmallestDecimal, // Amount of input tokens.
+        0, // minimum amount of output tokens.
+        path, // liquidity pool path.
+        addressToRecieve, // Reciever of profit.
+        deadline, // Timeout to fail transaction.
+        options); // includes gas limit.
 
     console.log(`Swap Complete!\n`);
 
