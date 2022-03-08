@@ -6,7 +6,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 
 ## Setup
 
-### Create and Setup .env
+### Create an .env file
 Before running any scripts, you'll want to create a .env file with the following values (see .env.example):
 
 - **ALCHEMY_API_KEY=""**
