@@ -47,13 +47,25 @@ async function getTokenAndContract(_token0Address, _token1Address) {
     return { token0Contract, token1Contract, token0, token1 }
 }
 
-// ! TODO: comments all around these methods. 
-
-
+/**
+ * Gets a pair contract address given a uniswap factory contract and token pair.
+ * See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/factory.
+ * @param  {factoryContract} 
+ * @param  {token0} 
+ * @param  {token1} 
+ */
 async function getPairAddress(factoryContract, token0, token1) {
     return factoryContract.getPair(token0, token1);
 }
 
+/**
+ * Gets a pair contract from a relevant factory contract and token pair.
+ * See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair.
+ * @param  {factoryContract} 
+ * @param  {token0} 
+ * @param  {token1} 
+ * @param  {signer} Input to the instantiated pair contract, if desired.
+ */
 async function getPairContract(factoryContract, token0, token1, signer) { 
     const pairAddress = await getPairAddress(factoryContract, token0, token1);
     return new ethers.Contract(pairAddress, IUniswapV2Pair.abi, signer);

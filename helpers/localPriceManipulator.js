@@ -24,13 +24,15 @@ async function setupAndManipulatePrice() {
     const signer = await impersonateWhaleAccount();
 
     // Instantiate contract objects.
+    // In this context, router contract will be used to actually execute swap,
+    // while factory contract will be used to log before and after prices.
     const uniSwapFactory = new ethers.Contract(UNISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
-    const sushiSwapFactory = new ethers.Contract(SUSHISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
     const uniSwapRouter = new ethers.Contract(UNISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
-    const sushiSwapRouter = new ethers.Contract(SUSHISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
+    // const sushiSwapFactory = new ethers.Contract(SUSHISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
+    // const sushiSwapRouter = new ethers.Contract(SUSHISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
     const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
-    // Arbitrage will be against given ERC20 token.
+    // Arbitrage opportunity will be against given ERC20 token.
     const wEthContract = new ethers.Contract(WETH[CHAIN_ID].address, erc20Abi, signer);
 
     // TODO: make this functionality better. 
