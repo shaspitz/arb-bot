@@ -28,14 +28,15 @@ async function setupAndManipulatePrice() {
     // while factory contract will be used to log before and after prices.
     const uniSwapFactory = new ethers.Contract(UNISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
     const uniSwapRouter = new ethers.Contract(UNISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
+    const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
+
+    // TODO: Make more manipulation scenarios possible with this script.
     // const sushiSwapFactory = new ethers.Contract(SUSHISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
     // const sushiSwapRouter = new ethers.Contract(SUSHISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
-    const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
     // Arbitrage opportunity will be against given ERC20 token.
     const wEthContract = new ethers.Contract(WETH[CHAIN_ID].address, erc20Abi, signer);
 
-    // TODO: make this functionality better. 
     const factoryToUse = uniSwapFactory;
     const routerToUse = uniSwapRouter;
 
