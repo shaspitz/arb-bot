@@ -1,8 +1,10 @@
 # Arbitrage Bot
 Trading bot that utilizes custom Solidity contracts, in conjunction with decentralized exchange contracts, to execute token arbitrage opportunities on any EVM compatible blockchain. 
 
+
 ## Technologies
 Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
+
 
 ## Setup
 
@@ -37,7 +39,8 @@ t yet have a contract deployed.
 6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Determine if ```bot.js``` should be ran with Node.js or hardhat to properly talk with the local network. 
- 
+
+
 ## Design
 
 ### Anatomy of bot.js -- TODO: update from recent refactors
@@ -63,6 +66,7 @@ The first-pass strategy implemented is only a simple example that goes along wit
 
 If arbitrage direction is opposite, this strategy can fall apart. At least in the case that Sushiswap has lower reserves than uniswap. TODO: this can prob be fixed with a simple check.
 
+
 ## Tests
 Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
 
@@ -71,6 +75,7 @@ Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test drive
 ```ArbitrageTests.js```: Verifies functionality for the arbitrage contract, and how it interacts with various deployed contracts. In progress...
 
 ```BotTests.js```: Verifies that the arb bot detects and appropriately acts on arbitrage opportunities as they arise. In progress...
+
 
 ## TODOs
  - Once all the below points are completed.. Make a new JS module (gitignored!) which will contain arb strategies that should not be shared ;)
