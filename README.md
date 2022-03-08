@@ -40,7 +40,7 @@ t yet have a contract deployed.
  
 ## Design
 
-## Anatomy of bot.js TODO: update from recent refactors
+### Anatomy of bot.js -- TODO: update from recent refactors
 The bot is essentially composed of 5 functions.
 - *main()*
 - *checkPrice()*
