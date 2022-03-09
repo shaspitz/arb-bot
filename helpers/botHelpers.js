@@ -4,7 +4,7 @@ const { ethers, } = require("hardhat");
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { getTokenContracts, getPairContract, calculatePrice,
-    getEstimatedReturn, getReserves, configureArbContractAndSigner, } = require('../helpers/generalHelpers');
+    getEstimatedReturn, getReserves, configureArbContractAndSigner, getProvider, } = require('../helpers/generalHelpers');
 
 // Token we're attempting to gain.
 const arbFor = process.env.ARB_FOR;
@@ -27,6 +27,8 @@ let uniSwapPairContract, sushiSwapPairContract,
 
 let amount; // TODO: make "amount" more descriptive.
 
+let provider;
+
 // Bool to prevent reentrancy-like bugs in the swap event handler.
 // A tool like https://medium.com/@chris_marois/asynchronous-locks-in-modern-javascript-8142c877baf
 // may be useful here instead, but JS is intended to be single threaded anyways.
@@ -39,6 +41,8 @@ let isExecuting = false
  * Handles initial contract instantiations and on-chain event subscriptions.
  */
 async function initialSetup() {
+
+    provider = await getProvider();
 
     const res = await configureArbContractAndSigner();
     const signer = res.signer;
@@ -72,6 +76,7 @@ async function initialSetup() {
     if (!isExecuting) {
         isExecuting = true
         
+        console.log(`Swap Initiated on ${exchangeString}, Checking Price...\n`);
         const priceDifference = await checkPrice(exchangeString, token0, token1);
         const routerPath = await determineDirection(priceDifference);
 
@@ -98,27 +103,27 @@ async function initialSetup() {
 }
 
 /**
- * TODO: summary
- * @param  {} exchange
- * @param  {} token0
- * @param  {} token1
+ * Queries the chain for the current DEX prices, returns a price difference percentage. 
+ * @param  {} token0Symbol
+ * @param  {} token1Symbol
  */
-async function checkPrice(exchange, token0, token1) {
-    console.log(`Swap Initiated on ${exchange}, Checking Price...\n`);
+async function checkPrice(token0Symbol, token1Symbol) {
 
-    const currentBlock = await web3.eth.getBlockNumber();
+    const blockNumber = await provider.getBlockNumber();
+    const currentBlock = await provider.getBlock(blockNumber);
 
-    const uPrice = await calculatePrice(uPair);
-    const sPrice = await calculatePrice(sPair);
+    const uniSwapPrice = await calculatePrice(uniSwapPairContract);
+    const sushiSwapPrice = await calculatePrice(sushiSwapPairContract);
 
-    const uFPrice = Number(uPrice).toFixed(units);
-    const sFPrice = Number(sPrice).toFixed(units);
-    const priceDifference = (((uFPrice - sFPrice) / sFPrice) * 100).toFixed(2);
+    const formattedUniSwapPrice = Number(uniSwapPrice).toFixed(units);
+    const formattedSushiSwapPrice = Number(sushiSwapPrice).toFixed(units);
+    const priceDifference = (((formattedUniSwapPrice - formattedSushiSwapPrice) / formattedSushiSwapPrice)
+        * 100).toFixed(2);
 
     console.log(`Current Block: ${currentBlock}`);
     console.log(`-----------------------------------------`);
-    console.log(`UNISWAP   | ${token1.symbol}/${token0.symbol}\t | ${uFPrice}`);
-    console.log(`SUSHISWAP | ${token1.symbol}/${token0.symbol}\t | ${sFPrice}\n`);
+    console.log(`UNISWAP   | ${token1Symbol}/${token0Symbol}\t | ${formattedUniSwapPrice}`);
+    console.log(`SUSHISWAP | ${token1Symbol}/${token0Symbol}\t | ${formattedSushiSwapPrice}\n`);
     console.log(`Percentage Difference: ${priceDifference}%\n`);
 
     return priceDifference;
@@ -292,4 +297,5 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
 
 module.exports = {
     initialSetup,
+    checkPrice,
 }
