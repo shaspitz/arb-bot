@@ -42,8 +42,8 @@ let isExecuting = false
  */
 async function main() {
 
-    if (config.PROJECT_SETTINGS.isLocal && !network) {
-        console.error("No local network was found. Service will exit.");
+    if (!network) {
+        console.error("No network was found. Service will exit.");
         return;
     }
     warnAboutEphemeralNetwork();
