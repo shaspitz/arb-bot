@@ -1,94 +1,116 @@
-// -- HANDLE INITIAL SETUP -- //
-
-require('./helpers/server');
+require("./helpers/server");
 require("dotenv").config();
+const config = require('./config.json');
+const { ethers } = require("hardhat");
+const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
+const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
+const { getTokenContracts, getPairContract, calculatePrice,
+    getEstimatedReturn, getReserves, configureArbContractAndSigner, } = require('./helpers/helpers');
 
-const config = require('./config.json')
-const { getTokenAndContract, getPairContract, calculatePrice, getEstimatedReturn, getReserves } = require('./helpers/helpers')
-const { uFactory, uRouter, sFactory, sRouter, web3, arbitrage } = require('./helpers/initialization')
+// Token we're attempting to gain.
+const arbFor = process.env.ARB_FOR;
+// Intermediary token in arb process.
+const arbAgainst = process.env.ARB_AGAINST;
+// Account to recieve profit.
+const account = process.env.ACCOUNT;
+// Used for price display/reporting.
+const units = process.env.UNITS;
+const difference = process.env.PRICE_DIFFERENCE;
 
-// -- .ENV VALUES HERE -- //
+// TODO: Gas config may change between chains, look into this.
+const gas = process.env.GAS_LIMIT;
+const estimatedGasCost = process.env.GAS_PRICE; // Estimated Gas: 0.008453220000006144 ETH + ~10%
 
-const arbFor = process.env.ARB_FOR // This is the address of token we are attempting to arbitrage (WETH)
-const arbAgainst = process.env.ARB_AGAINST // SHIB
-const account = process.env.ACCOUNT // Account to recieve profit
-const units = process.env.UNITS // Used for price display/reporting
-const difference = process.env.PRICE_DIFFERENCE
-const gas = process.env.GAS_LIMIT
-const estimatedGasCost = process.env.GAS_PRICE // Estimated Gas: 0.008453220000006144 ETH + ~10%
+let uniSwapPairContract, sushiSwapPairContract,
+    uniSwapFactoryContract, uniSwapRouterContract,
+    sushiSwapFactoryContract, sushiSwapRouterContract,
+    arbitrageContract;
 
-let uPair, sPair, amount
+let amount; // TODO: make "amount" more descriptive.
+
+// Bool to prevent reentrancy-like bugs in the swap event handler.
+// A tool like https://medium.com/@chris_marois/asynchronous-locks-in-modern-javascript-8142c877baf
+// may be useful here instead, but JS is intended to be single threaded anyways.
+// Plus, if we're already attempting to execute a transaction when an event is handled, 
+// any other potential arb opportunity would be outdated by the time the first transaction is executed.
+// Is it worth adding a priority to arb opportunities, if a waiting transaction is not sent yet?  
 let isExecuting = false
 
+/**
+ * Main logic for express server that scans for arb opportunities and executes swaps on custom 
+ * contract when appropriate. 
+ */
 async function main() {
-    const { token0Contract, token1Contract, token0, token1 } = await getTokenAndContract(arbFor, arbAgainst)
-    uPair = await getPairContract(uFactory, token0.address, token1.address)
-    sPair = await getPairContract(sFactory, token0.address, token1.address)
 
-    uPair.events.Swap({}, async () => {
-        if (!isExecuting) {
-            isExecuting = true
+    const res = await configureArbContractAndSigner();
+    const signer = res.signer;
+    arbitrageContract = res.arbitrageContract;
 
-            const priceDifference = await checkPrice('Uniswap', token0, token1)
-            const routerPath = await determineDirection(priceDifference)
+    // Instantiate all relevant contracts and pass signer from above.
+    // TODO: Are there contracts in which we don't have to pass the signer? for safety.
+    const { token0Contract, token1Contract } = await getTokenContracts(arbFor, arbAgainst, signer);
+    uniSwapFactoryContract = new ethers.Contract(config.UNISWAP.FACTORY_ADDRESS, IUniswapV2Factory.abi, signer);
+    uniSwapRouterContract = new ethers.Contract(config.UNISWAP.V2_ROUTER_02_ADDRESS, IUniswapV2Router02.abi, signer);
+    sushiSwapFactoryContract = new ethers.Contract(config.SUSHISWAP.FACTORY_ADDRESS, IUniswapV2Factory.abi, signer);
+    sushiSwapRouterContract = new ethers.Contract(config.SUSHISWAP.V2_ROUTER_02_ADDRESS, IUniswapV2Router02.abi, signer);
+    uniSwapPairContract = await getPairContract(uniSwapFactoryContract, token0Contract.address, token1Contract.address, signer);
+    sushiSwapPairContract = await getPairContract(sushiSwapFactoryContract, token0Contract.address, token1Contract.address, signer);
 
-            if (!routerPath) {
-                console.log(`No Arbitrage Currently Available\n`)
-                console.log(`-----------------------------------------\n`)
-                isExecuting = false
-                return
-            }
-
-            const isProfitable = await determineProfitability(routerPath, token0Contract, token0, token1)
-
-            if (!isProfitable) {
-                console.log(`No Arbitrage Currently Available\n`)
-                console.log(`-----------------------------------------\n`)
-                isExecuting = false
-                return
-            }
-
-            const receipt = await executeTrade(routerPath, token0Contract, token1Contract)
-
-            isExecuting = false
-        }
+    uniSwapPairContract.on("Swap", async () => {
+        await handleSwapEvent("Uniswap");
     })
 
-    sPair.events.Swap({}, async () => {
-        if (!isExecuting) {
-            isExecuting = true
-
-            const priceDifference = await checkPrice('Sushiswap', token0, token1)
-            const routerPath = await determineDirection(priceDifference)
-
-            if (!routerPath) {
-                console.log(`No Arbitrage Currently Available\n`)
-                console.log(`-----------------------------------------\n`)
-                isExecuting = false
-                return
-            }
-
-            const isProfitable = await determineProfitability(routerPath, token0Contract, token0, token1)
-
-            if (!isProfitable) {
-                console.log(`No Arbitrage Currently Available\n`)
-                console.log(`-----------------------------------------\n`)
-                isExecuting = false
-                return
-            }
-
-            const receipt = await executeTrade(routerPath, token0Contract, token1Contract)
-
-            isExecuting = false
-        }
+    sushiSwapPairContract.on("Swap", async () => {
+        await handleSwapEvent("Sushiswap");
     })
+    console.log("Waiting for swap events...");
 
-    console.log("Waiting for swap event...")
+    while (true) {
+        await new Promise(r => setTimeout(r, 5000)); // confirm that events would not wait for this promise to hit.
+    }
 }
 
-const checkPrice = async (exchange, token0, token1) => {
-    isExecuting = true
+/**
+ * Event handler for anyone executing a swap for a specific token pair.
+ * See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair#swap.
+ * @param  {} exchangeString
+ */
+async function handleSwapEvent(exchangeString) {
+    if (!isExecuting) {
+        isExecuting = true
+        
+        const priceDifference = await checkPrice('Uniswap', token0, token1);
+        const routerPath = await determineDirection(priceDifference);
 
+        if (!routerPath) {
+            console.log(`No Arbitrage Currently Available\n`);
+            console.log(`-----------------------------------------\n`);
+            isExecuting = false;
+            return;
+        }
+
+        const isProfitable = await determineProfitability(routerPath, token0Contract, token0, token1);
+
+        if (!isProfitable) {
+            console.log(`No Arbitrage Currently Available\n`);
+            console.log(`-----------------------------------------\n`);
+            isExecuting = false;
+            return;
+        }
+
+        const receipt = await executeTrade(routerPath, token0Contract, token1Contract);
+
+        isExecuting = false;
+    }
+}
+
+/**
+ * TODO: summary
+ * @param  {} exchange
+ * @param  {} token0
+ * @param  {} token1
+ */
+async function checkPrice(exchange, token0, token1) {
     console.log(`Swap Initiated on ${exchange}, Checking Price...\n`)
 
     const currentBlock = await web3.eth.getBlockNumber()
@@ -106,32 +128,43 @@ const checkPrice = async (exchange, token0, token1) => {
     console.log(`SUSHISWAP | ${token1.symbol}/${token0.symbol}\t | ${sFPrice}\n`)
     console.log(`Percentage Difference: ${priceDifference}%\n`)
 
-    return priceDifference
+    return priceDifference;
 }
 
-const determineDirection = async (priceDifference) => {
+// TODO: add comments to all other methods.
+
+/**
+ * Determines which exchange the buy and sell should occur on, if any.
+ * @param  {} priceDifference
+ */
+async function determineDirection(priceDifference) {
     console.log(`Determining Direction...\n`)
 
     if (priceDifference >= difference) {
-
-        console.log(`Potential Arbitrage Direction:\n`)
-        console.log(`Buy\t -->\t Uniswap`)
-        console.log(`Sell\t -->\t Sushiswap\n`)
-        return [uRouter, sRouter]
-
-    } else if (priceDifference <= -(difference)) {
-
+        console.log(`Potential Arbitrage Direction:\n`);
+        console.log(`Buy\t -->\t Uniswap`);
+        console.log(`Sell\t -->\t Sushiswap\n`);
+        return [uRouter, sRouter];
+    }
+    
+    if (priceDifference <= -(difference)) {
         console.log(`Potential Arbitrage Direction:\n`)
         console.log(`Buy\t -->\t Sushiswap`)
         console.log(`Sell\t -->\t Uniswap\n`)
-        return [sRouter, uRouter]
-
-    } else {
-        return null
-    }
+        return [sRouter, uRouter];
+    } 
+    return null;
 }
 
-const determineProfitability = async (_routerPath, _token0Contract, _token0, _token1) => {
+/**
+ * TODO: summary!
+ * TODO: change var names
+ * @param  {} _routerPath
+ * @param  {} _token0Contract
+ * @param  {} _token0
+ * @param  {} _token1
+ */
+async function determineProfitability(_routerPath, _token0Contract, _token0, _token1) {
     console.log(`Determining Profitability...\n`)
 
     // This is where you can customize your conditions on whether a profitable trade is possible.
@@ -213,7 +246,14 @@ const determineProfitability = async (_routerPath, _token0Contract, _token0, _to
     }
 }
 
-const executeTrade = async (_routerPath, _token0Contract, _token1Contract) => {
+/**
+ * TODO: summary
+ * TODO: var names
+ * @param  {} _routerPath
+ * @param  {} _token0Contract
+ * @param  {} _token1Contract
+ */
+async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
     console.log(`Attempting Arbitrage...\n`)
 
     let startOnUniswap
@@ -228,7 +268,7 @@ const executeTrade = async (_routerPath, _token0Contract, _token1Contract) => {
     const balanceBefore = await _token0Contract.methods.balanceOf(account).call()
     const ethBalanceBefore = await web3.eth.getBalance(account)
 
-    if (config.PROJECT_SETTINGS.isDeployed) {
+    if (config.PROJECT_SETTINGS.shouldExecuteTrade) {
         await _token0Contract.methods.approve(arbitrage._address, amount).send({ from: account })
         await arbitrage.methods.executeTrade(startOnUniswap, _token0Contract._address, _token1Contract._address, amount).send({ from: account, gas: gas })
     }

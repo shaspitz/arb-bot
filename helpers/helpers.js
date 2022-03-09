@@ -3,7 +3,7 @@ const config = require("../config.json")
 const Big = require("big.js");
 const { ethers, waffle } = require("hardhat");
 const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
-const IERC20 = require("@openzeppelin/contracts/build/contracts/ERC20.json");
+const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 
 async function warnAboutEphemeralNetwork() {
     if (network.name === "hardhat") {
@@ -20,6 +20,25 @@ async function getProvider() {
         return waffle.provider;
     // TODO: determine if this prod url is correct. 
     return new ethers.providers.JsonRpcProvider(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`);
+}
+
+/**
+ * Configures the signer (wallet inherits signer) for contract function calls within the bot,
+ * and instantiates the arbitrage contract.  
+ */
+ async function configureArbContractAndSigner() {
+    let arbitrageContract;
+    let signer;
+    if (config.PROJECT_SETTINGS.isLocal) {
+        const res = await getArbContractAndDeployer();
+        arbitrageContract = res.deployedContract;
+        // If running locally, use first default signer from helper method. 
+        signer = res.deployer;
+    } else {
+        console.error("You'll need a contract ABI for mainnet.");
+        signer = new ethers.Wallet(process.env.ACCOUNT);
+    }
+    return {arbitrageContract, signer};
 }
 
 /**
@@ -48,36 +67,38 @@ async function getArbContractAndDeployer() {
  * Instantiates and returns two ERC20 contracts for two token addresses. 
  * @param  {} token0Address
  * @param  {} token1Address
+ * @param  {} signer
  */
-async function getTokenContracts(token0Address, token1Address) {
-    const token0Contract = new ethers.Contract(IERC20.abi, token0Address);
-    const token1Contract = new ethers.Contract(IERC20.abi, token1Address);
+async function getTokenContracts(token0Address, token1Address, signer) {
+    const token0Contract = new ethers.Contract(token0Address, erc20Abi, signer);
+    const token1Contract = new ethers.Contract(token1Address, erc20Abi, signer);
     return { token0Contract, token1Contract }
 }
 
 /**
  * Gets a pair contract address given a uniswap factory contract and token pair.
- * See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/factory.
+ * See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/factory#getpair.
  * @param  {} factoryContract
- * @param  {} token0
- * @param  {} token1
+ * @param  {} token0Address
+ * @param  {} token1Address
  */
-async function getPairAddress(factoryContract, token0, token1) {
-    return factoryContract.getPair(token0, token1);
+async function getPairAddress(factoryContract, token0Address, token1Address) {
+    return factoryContract.getPair(token0Address, token1Address);
 }
 
 /**
  * Gets a pair contract from a relevant factory contract and token pair.
  * See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair.
  * @param  {} factoryContract
- * @param  {} token0
- * @param  {} token1
+ * @param  {} token0Address
+ * @param  {} token1Address
  * @param  {} signer input to the instantiated pair contract, if desired.
  */
-async function getPairContract(factoryContract, token0, token1, signer) { 
-    const pairAddress = await getPairAddress(factoryContract, token0, token1);
+async function getPairContract(factoryContract, token0Address, token1Address, signer) { 
+    const pairAddress = await getPairAddress(factoryContract, token0Address, token1Address);
     return new ethers.Contract(pairAddress, IUniswapV2Pair.abi, signer);
 }
+
 /**
  * Returns the reserves of token0 and token1 (implicit to a pair contract)
  * used to price trades and distribute liquidity.
@@ -120,6 +141,7 @@ async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
 module.exports = {
     warnAboutEphemeralNetwork,
     getProvider,
+    configureArbContractAndSigner,
     getArbContractAndDeployer,
     getTokenContracts,
     getPairAddress,
