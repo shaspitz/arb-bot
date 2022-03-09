@@ -1,11 +1,11 @@
 require("./helpers/server");
 require("dotenv").config();
 const config = require('./config.json');
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { getTokenContracts, getPairContract, calculatePrice,
-    getEstimatedReturn, getReserves, configureArbContractAndSigner, } = require('./helpers/helpers');
+    getEstimatedReturn, getReserves, configureArbContractAndSigner, warnAboutEphemeralNetwork } = require('./helpers/helpers');
 
 // Token we're attempting to gain.
 const arbFor = process.env.ARB_FOR;
@@ -42,6 +42,13 @@ let isExecuting = false
  */
 async function main() {
 
+    if (config.PROJECT_SETTINGS.isLocal && !network) {
+        console.error("No local network was found. Service will exit.");
+        return;
+    }
+    warnAboutEphemeralNetwork();
+    console.log("Connected to network:", network.name);
+
     const res = await configureArbContractAndSigner();
     const signer = res.signer;
     arbitrageContract = res.arbitrageContract;
@@ -64,6 +71,9 @@ async function main() {
         await handleSwapEvent("Sushiswap");
     })
     console.log("Waiting for swap events...");
+
+    // TODO: Why is this service making periodic RPC calls, "eth_chainId" and "eth_blockNumber"? 
+    // Is this internal to contract event subscriptions?  
 
     while (true) {
         await new Promise(r => setTimeout(r, 5000)); // confirm that events would not wait for this promise to hit.

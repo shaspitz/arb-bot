@@ -1,15 +1,15 @@
 require("dotenv").config();
 const config = require("../config.json")
 const Big = require("big.js");
-const { ethers, waffle } = require("hardhat");
+const { ethers, waffle, network } = require("hardhat");
 const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 
-async function warnAboutEphemeralNetwork() {
+function warnAboutEphemeralNetwork() {
     if (network.name === "hardhat") {
         console.warn(
-            "You are using the Hardhat Network, which gets automatically created and destroyed every time." +
-            " Use the Hardhat option \"--network localhost\" if running outside of tests."
+            "\nYou are using the Hardhat Network, which gets automatically created and destroyed every time." +
+            " Use the Hardhat option \"--network localhost\" if running outside of tests.\n"
         );
     }
 }
