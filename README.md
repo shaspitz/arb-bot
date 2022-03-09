@@ -38,7 +38,7 @@ t yet have a contract deployed.
 5. Next, run ```npx hardhat node```.
 6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
-8. Determine if ```bot.js``` should be ran with Node.js or hardhat to properly talk with the local network. 
+8. Run the bot with ```npx hardhat run bot.js --network localhost```
 
 
 ## Design
