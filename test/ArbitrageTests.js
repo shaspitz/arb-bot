@@ -3,25 +3,16 @@ const { ethers } = require("hardhat");
 const config = require('../config.json');
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
+const { getArbContractAndDeployer } = require('../helpers/helpers');
 
 const ARB_FOR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH address.
 const ARB_AGAINST = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"; // SHIB address.
 
 let deployedContract, arbForContract, deployer;
 before(async function () {
-
-  // Use contract factory instead of instantiating ethers.Contract object,
-  // since the relevant contract is not already deployed.
-  // Note: real deploys should use contract factory constructor instead of "getContractFactory". 
-  const flashLoanContract = await ethers.getContractFactory("Arbitrage");
-  
-  // With hardhat-ethers plugin, contract is deployed to first signer by default.
-  deployedContract = await flashLoanContract.deploy(
-    config.SUSHISWAP.V2_ROUTER_02_ADDRESS, 
-    config.UNISWAP.V2_ROUTER_02_ADDRESS
-  );
-  
-  [deployer] = await ethers.getSigners();
+  const res = await getArbContractAndDeployer();
+  deployedContract = res.deployedContract;
+  deployer = res.deployer;
   arbForContract = new ethers.Contract(ARB_FOR, erc20Abi, deployer);
 })
 

@@ -2,7 +2,6 @@ require("dotenv").config();
 const config = require("../config.json")
 const Big = require("big.js");
 const { ethers, waffle } = require("hardhat");
-const { ChainId, Token } = require("@uniswap/sdk");
 const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
 const IERC20 = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 
@@ -20,31 +19,40 @@ async function getProvider() {
     if (config.PROJECT_SETTINGS.isLocal) 
         return waffle.provider;
     // TODO: determine if this prod url is correct. 
-    return new ethers.providers.JsonRpcProvider("wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}");
+    return new ethers.providers.JsonRpcProvider(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`);
 }
 
-async function getTokenAndContract(_token0Address, _token1Address) {
-    // ! Need to update.
-    const token0Contract = new web3.eth.Contract(IERC20.abi, _token0Address)
-    const token1Contract = new web3.eth.Contract(IERC20.abi, _token1Address)
+/**
+ * Gets the custom arbitrage contract, and deployer/owner of that contract.
+ * Only to be used on local hardhat network! Mainnet needs separate handling.
+ */
+async function getArbContractAndDeployer() {
+    // Use contract factory instead of instantiating ethers.Contract object,
+    // since the relevant contract needs to be deployed.  
+    // Note: real deploys should use contract factory constructor instead of "getContractFactory". 
+    const arbitrageContract = await ethers.getContractFactory("Arbitrage");
+    
+    // With hardhat-ethers plugin, contract is deployed to first signer by default.
+    const deployedContract = await arbitrageContract.deploy(
+        config.SUSHISWAP.V2_ROUTER_02_ADDRESS, 
+        config.UNISWAP.V2_ROUTER_02_ADDRESS
+    );
+    
+    let deployer;
+    [deployer] = await ethers.getSigners();
+    
+    return { deployedContract, deployer };
+}
 
-    const token0 = new Token(
-        ChainId.MAINNET,
-        _token0Address,
-        18,
-        await token0Contract.methods.symbol().call(),
-        await token0Contract.methods.name().call()
-    )
-
-    const token1 = new Token(
-        ChainId.MAINNET,
-        _token1Address,
-        18,
-        await token1Contract.methods.symbol().call(),
-        await token1Contract.methods.name().call()
-    )
-
-    return { token0Contract, token1Contract, token0, token1 }
+/**
+ * Instantiates and returns two ERC20 contracts for two token addresses. 
+ * @param  {} token0Address
+ * @param  {} token1Address
+ */
+async function getTokenContracts(token0Address, token1Address) {
+    const token0Contract = new ethers.Contract(IERC20.abi, token0Address);
+    const token1Contract = new ethers.Contract(IERC20.abi, token1Address);
+    return { token0Contract, token1Contract }
 }
 
 /**
@@ -93,6 +101,7 @@ async function calculatePrice(pairContract) {
 }
 
 function calculateDifference(uPrice, sPrice) {
+    // remember to update these methods and acd all the neccessary comments!!
     // ! Need to update.
     return (((uPrice - sPrice) / sPrice) * 100).toFixed(2)
 }
@@ -111,7 +120,8 @@ async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
 module.exports = {
     warnAboutEphemeralNetwork,
     getProvider,
-    getTokenAndContract,
+    getArbContractAndDeployer,
+    getTokenContracts,
     getPairAddress,
     getPairContract,
     getReserves,
