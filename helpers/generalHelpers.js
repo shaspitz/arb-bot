@@ -14,6 +14,7 @@ function warnAboutEphemeralNetwork() {
         );
     }
 }
+
 /**
  * Sends an RPC request which restores the local EVM state to the fork parameters defined
  * in the hardhat config file. 
