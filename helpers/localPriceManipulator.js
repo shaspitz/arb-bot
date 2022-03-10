@@ -16,8 +16,9 @@ const CHAIN_ID = ChainId.MAINNET; // We've forked mainnet here.
 /**
  * Manipulates the price of a relevant token pair, to properly test arbitrage opportunities
  * in a local dev environment.  
+ * @param  {} amount of tokens to dump in order to manipulate price on local chain.  
  */
-async function setupAndManipulatePrice() {
+async function setupAndManipulatePrice(amount) {
 
     warnAboutEphemeralNetwork();
 
@@ -51,7 +52,7 @@ async function setupAndManipulatePrice() {
     // Fetch price of SHIB/WETH before we execute the swap.
     const priceBefore = await calculatePrice(pairContract);
 
-    await manipulatePrice(erc20Contract, routerToUse, account);
+    await manipulatePrice(erc20Contract, routerToUse, account, amount);
 
     // Fetch price of SHIB/WETH after the swap.
     const priceAfter = await calculatePrice(pairContract);
@@ -68,6 +69,8 @@ async function setupAndManipulatePrice() {
 
     console.log(`\nBalance in reciever account[${account}]: ${balanceInWEth} WETH.\n`);
 
+    await stopImpersonatingWhale();
+
     return {priceBefore, priceAfter};
 }
 
@@ -83,21 +86,29 @@ async function impersonateWhaleAccount() {
     return ethers.getSigner(ACCOUNT_TO_IMPERSONATE);
 }
 
+async function stopImpersonatingWhale() {
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ACCOUNT_TO_IMPERSONATE],
+    });
+}
+
 /**
  * Dumps tokens specified by given ERC20 contract, swapped for WETH that is sent to specified address.
  * Creates an arbitrage opportunity to test against the bot.
  * @param {} Contract for ERC20 token that we're arbing against, assumed already signed.
  * @param {} DEX router to execute exchange, assumed already signed.
  * @param {} Address to recieve funds.
+ * @param {} amount of tokens to dump in order to manipulate price on local chain.  
  */
-async function manipulatePrice(erc20contract, router, addressToRecieve) {
+async function manipulatePrice(erc20contract, router, addressToRecieve, amount) {
     const tokenSymbol = await erc20contract.symbol();
     const wEthSymbol = WETH[CHAIN_ID].symbol;
     console.log(`\nBeginning Swap...\n`);
     console.log(`Input Token: ${tokenSymbol}`);
     console.log(`Output Token: ${wEthSymbol}\n`);
 
-    const amountInSmallestDecimal = ethers.utils.parseUnits(AMOUNT.toString(), "ether"); 
+    const amountInSmallestDecimal = ethers.utils.parseUnits(amount.toString(), "ether"); 
     const path = [erc20contract.address, WETH[CHAIN_ID].address];
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes.
     const options = { gasLimit: GAS };

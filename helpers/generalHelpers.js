@@ -1,5 +1,6 @@
 require("dotenv").config();
-const config = require("../config.json")
+const hardhatConfig = require("../hardhat.config");
+const config = require("../config.json");
 const Big = require("big.js");
 const { ethers, waffle, network } = require("hardhat");
 const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
@@ -13,12 +14,27 @@ function warnAboutEphemeralNetwork() {
         );
     }
 }
+/**
+ * Sends an RPC request which restores the local EVM state to the fork parameters defined
+ * in the hardhat config file. 
+ */
+async function resetHardhatToFork() {
+    await network.provider.request({
+        method: "hardhat_reset",
+        params: [ { forking: {
+                    jsonRpcUrl: hardhatConfig.networks.hardhat.forking.url,
+                    blockNumber: hardhatConfig.networks.hardhat.blockNumber,
+                },
+            },
+        ],
+    });
+}
 
-// ! Should I use get default provider here? 
 async function getProvider() {
     if (config.PROJECT_SETTINGS.isLocal) 
         return waffle.provider;
     // TODO: determine if this prod url is correct, http instead?  
+    // ! Should I use get default provider here? 
     return new ethers.providers.JsonRpcProvider(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`);
 }
 
@@ -140,6 +156,7 @@ async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
 
 module.exports = {
     warnAboutEphemeralNetwork,
+    resetHardhatToFork,
     getProvider,
     configureArbContractAndSigner,
     getArbContractAndDeployer,

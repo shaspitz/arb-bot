@@ -3,20 +3,22 @@ const { ethers } = require("hardhat");
 const config = require('../config.json');
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
-const { getArbContractAndDeployer } = require('../helpers/generalHelpers');
+const { getArbContractAndDeployer, resetHardhatToFork } = require('../helpers/generalHelpers');
 
 const ARB_FOR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH address.
 const ARB_AGAINST = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"; // SHIB address.
 
 let deployedContract, arbForContract, deployer;
-before(async function () {
-  const res = await getArbContractAndDeployer();
-  deployedContract = res.deployedContract;
-  deployer = res.deployer;
-  arbForContract = new ethers.Contract(ARB_FOR, erc20Abi, deployer);
-})
 
 describe("Arbitrage contract", async function () {
+  beforeEach(async function () {
+    await resetHardhatToFork();
+    const res = await getArbContractAndDeployer();
+    deployedContract = res.deployedContract;
+    deployer = res.deployer;
+    arbForContract = new ethers.Contract(ARB_FOR, erc20Abi, deployer);
+  })
+
   it("Test token to market Id mapping.", async function () {
     const wethAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     const marketId = await deployedContract.getMarketId(wethAddress);
@@ -25,7 +27,7 @@ describe("Arbitrage contract", async function () {
 
   it("Test arb execution.", async function() {
     // Assumes that uniswap price is manipulated, then we have an arb opportunity against sushiswap.
-    await setupAndManipulatePrice();
+    await setupAndManipulatePrice(AMOUNT);
     const startOnUniswap = true;
     const token0 = ARB_FOR;
     const token1 = ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.

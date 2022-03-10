@@ -1,7 +1,7 @@
-const { setupAndManipulatePrice } = require("../helpers/localPriceManipulator");
+const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 
 async function main() {
-    await setupAndManipulatePrice();
+    await setupAndManipulatePrice(AMOUNT);
 };
   
 main()
