@@ -14,7 +14,7 @@ const arbAgainst = process.env.ARB_AGAINST;
 const account = process.env.ACCOUNT;
 // Used for price display/reporting.
 const units = process.env.UNITS;
-const difference = process.env.PRICE_DIFFERENCE;
+const priceDifferenceThresh = process.env.PRICE_DIFFERENCE;
 
 // TODO: Gas config may change between chains, look into this.
 const gas = process.env.GAS_LIMIT;
@@ -85,8 +85,8 @@ async function initialSetup() {
         isExecuting = true
         
         console.log(`Swap Initiated on ${exchangeString}, Checking Price...\n`);
-        const priceDifference = await checkPrice();
-        const routerPath = await determineDirection(priceDifference);
+        const priceDifference = await getPriceDifferencePercent();
+        const routerPath = await determineDirection(priceDifference, priceDifferenceThresh);
 
         if (!routerPath) {
             console.log(`No Arbitrage Currently Available\n`);
@@ -112,10 +112,8 @@ async function initialSetup() {
 
 /**
  * Queries the chain for the current DEX prices, returns a price difference percentage. 
- * @param  {} token0Symbol
- * @param  {} token1Symbol
  */
-async function checkPrice() {
+async function getPriceDifferencePercent() {
     
     const blockNumber = await provider.getBlockNumber();
 
@@ -136,24 +134,24 @@ async function checkPrice() {
     return priceDifference;
 }
 
-// TODO: add comments to all other methods.
-
 /**
  * Determines which exchange the buy and sell should occur on, if any.
- * @param  {} priceDifference
+ * Returns null if DEX price differences doesn't exceed the min threshold defined in the .env file. 
+ * @param  {} priceDifferencePercent
+ * @param  {} thresh to deremine potential arbitrage opportunity.
  */
-async function determineDirection(priceDifference) {
+async function determineDirection(priceDifferencePercent, thresh) {
 
     console.log(`Determining Direction...\n`)
 
-    if (priceDifference >= difference) {
+    if (priceDifferencePercent >= thresh) {
         console.log(`Potential Arbitrage Direction:\n`);
         console.log(`Buy\t -->\t Uniswap`);
         console.log(`Sell\t -->\t Sushiswap\n`);
         return [uRouter, sRouter];
     }
     
-    if (priceDifference <= -(difference)) {
+    if (priceDifferencePercent <= -thresh) {
         console.log(`Potential Arbitrage Direction:\n`)
         console.log(`Buy\t -->\t Sushiswap`)
         console.log(`Sell\t -->\t Uniswap\n`)
@@ -305,5 +303,6 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
 
 module.exports = {
     initialSetup,
-    checkPrice,
+    getPriceDifferencePercent,
+    determineDirection,
 }

@@ -1,6 +1,7 @@
+const { expect } = require("chai");
 require("dotenv").config();
-const { initialSetup, checkPrice } = require("../helpers/botHelpers");
-const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
+const { initialSetup, getPriceDifferencePercent, determineDirection, } = require("../helpers/botHelpers");
+const { setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
 const { resetHardhatToFork } = require('../helpers/generalHelpers');
 
 
@@ -11,13 +12,19 @@ describe("Bot helpers module", async function () {
     await initialSetup();
   })
 
-  it("Test CheckPrice functionality", async function () {
-    const priceBefore = await checkPrice();
+  it("Test functionality of getPriceDifferencePercent and how it feeds into determineDirection",
+    async function () {
+    const priceDiffBefore = await getPriceDifferencePercent();
 
+    // Local price manipulator dumps SHIB into a SHIB/WETH pool on uniswap. 
+    // Therefore the SHIB/WETH price on uniswap should go up, and percentage
+    // returned from "checkPrice" (uni price - sushi price) / sushi price should go up too.  
     const arbitraryDumpAmount = "1000000000";
-    const {expectedPriceBefore, expectedPriceAfter} = await setupAndManipulatePrice(arbitraryDumpAmount); 
+    await setupAndManipulatePrice(arbitraryDumpAmount); 
 
-    const priceAfter = await checkPrice();
-    // TODO: need to build out these tests more.. percentage differences look off.
+    const priceDiffAfter = await getPriceDifferencePercent();
+    expect(Number(priceDiffAfter)).to.be.greaterThan(Number(priceDiffBefore));
+
+
   });
 });
