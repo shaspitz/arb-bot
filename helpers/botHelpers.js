@@ -137,6 +137,7 @@ async function getPriceDifferencePercent() {
 /**
  * Determines which exchange the buy and sell should occur on, if any.
  * Returns null if DEX price differences doesn't exceed the min threshold defined in the .env file. 
+ * Otherwise returns the order of DEX routers for a potential arb. 
  * @param  {} priceDifferencePercent
  * @param  {} thresh to deremine potential arbitrage opportunity.
  */
@@ -148,33 +149,35 @@ async function determineDirection(priceDifferencePercent, thresh) {
         console.log(`Potential Arbitrage Direction:\n`);
         console.log(`Buy\t -->\t Uniswap`);
         console.log(`Sell\t -->\t Sushiswap\n`);
-        return [uRouter, sRouter];
+        return [uniSwapRouterContract, sushiSwapRouterContract];
     }
     
     if (priceDifferencePercent <= -thresh) {
         console.log(`Potential Arbitrage Direction:\n`)
         console.log(`Buy\t -->\t Sushiswap`)
         console.log(`Sell\t -->\t Uniswap\n`)
-        return [sRouter, uRouter];
+        return [sushiSwapRouterContract, uniSwapRouterContract];
     } 
     return null;
 }
 
 /**
  * TODO: summary!
- * TODO: change var names
- * @param  {} _routerPath
- * @param  {} _token0Contract
- * @param  {} _token0
- * @param  {} _token1
+ * @param  {} routerPath
+ * @param  {} token0Contract
+ * @param  {} token0
+ * @param  {} token1
  */
-async function determineProfitability(_routerPath, _token0Contract, _token0, _token1) {
+async function determineProfitability(routerPath, token0Contract, token0, token1) {
     console.log(`Determining Profitability...\n`)
 
     // This is where you can customize your conditions on whether a profitable trade is possible.
     // This is a basic example of trading WETH/SHIB...
 
     // TODO: Move intelligent logic to a private repo. Anyone can have this simple example tho.
+
+    // TODO: Need to look into how slippage relates to everything here. Strategy can stay simple in this repo,
+    // but should be more complex in private repo. At least type up a good explanation.
 
     let reserves, exchangeToBuy, exchangeToSell
 

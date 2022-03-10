@@ -41,18 +41,15 @@ async function setupAndManipulatePrice(amount) {
     const factoryToUse = uniSwapFactory;
     const routerToUse = uniSwapRouter;
 
-    const provider = await getProvider();
-    const accounts = await provider.listAccounts();
-
-    // This will be the account to recieve WETH after we perform the swap to manipulate price.
-    const account = accounts[1]; // ! 0 index? 
-    
     const pairContract = await getPairContract(factoryToUse, process.env.ARB_AGAINST, WETH[CHAIN_ID].address, signer);
 
     // Fetch price of SHIB/WETH before we execute the swap.
     const priceBefore = await calculatePrice(pairContract);
 
-    await manipulatePrice(erc20Contract, routerToUse, account, amount);
+    // Note: Pass in original signer to recieve swapped token.
+    const recieverOfSwap = signer.address;
+    
+    await manipulatePrice(erc20Contract, routerToUse, recieverOfSwap, amount); 
 
     // Fetch price of SHIB/WETH after the swap.
     const priceAfter = await calculatePrice(pairContract);
@@ -64,10 +61,10 @@ async function setupAndManipulatePrice(amount) {
     }
     console.table(data);
 
-    let balance = await wEthContract.balanceOf(account);
+    const balance = await wEthContract.balanceOf(recieverOfSwap);
     balanceInWEth = ethers.utils.formatEther(balance.toString());
 
-    console.log(`\nBalance in reciever account[${account}]: ${balanceInWEth} WETH.\n`);
+    console.log(`\nBalance in reciever account[${recieverOfSwap}]: ${balanceInWEth} WETH.\n`);
 
     await stopImpersonatingWhale();
 
@@ -117,6 +114,7 @@ async function manipulatePrice(erc20contract, router, addressToRecieve, amount) 
     
     // Both uniswap and sushiswap implement the "swapExactTokensForTokens" function. 
     // See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokens.
+    // Note that swap will not fully execute at the current price, according to slippage.  
     const receipt = await router.swapExactTokensForTokens(
         amountInSmallestDecimal, // Amount of input tokens.
         0, // minimum amount of output tokens.

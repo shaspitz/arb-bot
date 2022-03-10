@@ -37,10 +37,26 @@ describe("Price manipulation methods.", async function () {
     });
 
     it("Local price manipulation is sane and actually creates an arb opportunity", async function () {
+        const wEthContract = new ethers.Contract(process.env.ARB_FOR, erc20Abi, signer);
+
+        // Starting prices.
+        const startingShib = await erc20Contract.balanceOf(signer.address);
+        const startingWEth = await wEthContract.balanceOf(signer.address);
+
         const {priceBefore, priceAfter} = await setupAndManipulatePrice(AMOUNT);
+
         // We're dumping SHIB, so WETH/SHIB price should go up.
         priceMultiplier = priceAfter / priceBefore;
         console.log("Price multiplier from dumping SHIB", priceMultiplier);
         expect(priceMultiplier).to.be.greaterThan(1.5);
+
+        // Avg execution price vs starting price. 
+        const wEthGained = await wEthContract.balanceOf(signer.address) - startingWEth;
+        const shibLost = startingShib - await erc20Contract.balanceOf(signer.address);
+        const averageExecutionPrice = shibLost / wEthGained;
+
+        // Slippage!
+        console.log("Starting price (SHIB/WETH): ", priceBefore);
+        console.log("Average swap price (SHIB/WETH): ", averageExecutionPrice);
     });
 });
