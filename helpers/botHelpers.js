@@ -44,7 +44,7 @@ let isExecuting = false
  */
 async function initialSetup() {
 
-    provider = await getProvider();
+    provider = getProvider();
 
     const res = await configureArbContractAndSigner();
     const signer = res.signer;

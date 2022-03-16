@@ -46,7 +46,7 @@ describe("Arbitrage contract", async function () {
 
     const balanceAfter = await arbForContract.balanceOf(await deployer.getAddress());
 
-    const someArbitraryProfit = ethers.utils.parseEther("0.001"); // Probobly around 2.5 dollars, at least in 2022 ;)
+    const someArbitraryProfit = ethers.utils.parseEther("0.0001"); 
     expect(balanceAfter - balanceBefore).to.be.greaterThanOrEqual(Number(someArbitraryProfit));
   })
 });

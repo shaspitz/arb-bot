@@ -20,7 +20,7 @@ function warnAboutEphemeralNetwork() {
  * in the hardhat config file. 
  */
 async function resetHardhatToFork() {
-    await network.provider.request({
+    return network.provider.request({
         method: "hardhat_reset",
         params: [ { forking: {
                     jsonRpcUrl: hardhatConfig.networks.hardhat.forking.url,
@@ -31,10 +31,10 @@ async function resetHardhatToFork() {
     });
 }
 
-async function getProvider() {
+function getProvider() {
     if (config.PROJECT_SETTINGS.isLocal) 
         return waffle.provider;
-    // TODO: determine if this prod url is correct, http instead?  
+    // TODO: determine if this mainnet url is correct, http instead?  
     // ! Should I use get default provider here? 
     return new ethers.providers.JsonRpcProvider(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`);
 }
