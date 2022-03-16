@@ -40,8 +40,10 @@ describe("Price manipulation methods.", async function () {
         const wEthContract = new ethers.Contract(process.env.ARB_FOR, erc20Abi, signer);
 
         // Starting prices.
-        const startingShib = await erc20Contract.balanceOf(signer.address);
-        const startingWEth = await wEthContract.balanceOf(signer.address);
+        const [startingShib, startingWEth] = await Promise.all([
+            erc20Contract.balanceOf(signer.address),
+            wEthContract.balanceOf(signer.address)
+        ]);
 
         const {priceBefore, priceAfter} = await setupAndManipulatePrice(AMOUNT);
 
@@ -51,8 +53,12 @@ describe("Price manipulation methods.", async function () {
         expect(priceMultiplier).to.be.greaterThan(1.5);
 
         // Avg execution price vs starting price. 
-        const wEthGained = await wEthContract.balanceOf(signer.address) - startingWEth;
-        const shibLost = startingShib - await erc20Contract.balanceOf(signer.address);
+        const [endingShib, endingWEth] = await Promise.all([
+            erc20Contract.balanceOf(signer.address),
+            wEthContract.balanceOf(signer.address)
+        ]);
+        const shibLost = startingShib - endingShib;
+        const wEthGained = endingWEth - startingWEth;
         const averageExecutionPrice = shibLost / wEthGained;
 
         // Slippage!
