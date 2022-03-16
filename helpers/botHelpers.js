@@ -46,22 +46,28 @@ async function initialSetup() {
 
     provider = getProvider();
 
-    const res = await configureArbContractAndSigner();
+    let res = await configureArbContractAndSigner();
     const signer = res.signer;
     arbitrageContract = res.arbitrageContract;
 
     // Instantiate all relevant contracts and pass signer from above.
-    // TODO: Are there contracts in which we don't have to pass the signer? for safety.
-    const { token0Contract, token1Contract } = await getTokenContracts(arbFor, arbAgainst, signer);
     uniSwapFactoryContract = new ethers.Contract(config.UNISWAP.FACTORY_ADDRESS, IUniswapV2Factory.abi, signer);
     uniSwapRouterContract = new ethers.Contract(config.UNISWAP.V2_ROUTER_02_ADDRESS, IUniswapV2Router02.abi, signer);
     sushiSwapFactoryContract = new ethers.Contract(config.SUSHISWAP.FACTORY_ADDRESS, IUniswapV2Factory.abi, signer);
     sushiSwapRouterContract = new ethers.Contract(config.SUSHISWAP.V2_ROUTER_02_ADDRESS, IUniswapV2Router02.abi, signer);
-    uniSwapPairContract = await getPairContract(uniSwapFactoryContract, token0Contract.address, token1Contract.address, signer);
-    sushiSwapPairContract = await getPairContract(sushiSwapFactoryContract, token0Contract.address, token1Contract.address, signer);
 
-    token0Symbol = await token0Contract.symbol();
-    token1Symbol = await token1Contract.symbol();
+    const { token0Contract, token1Contract } = await getTokenContracts(arbFor, arbAgainst, signer);
+
+    res = await Promise.all([
+        getPairContract(uniSwapFactoryContract, token0Contract.address, token1Contract.address, signer),
+        getPairContract(sushiSwapFactoryContract, token0Contract.address, token1Contract.address, signer),
+        token0Contract.symbol(),
+        token1Contract.symbol(),
+    ]);
+    uniSwapPairContract = res[0];
+    sushiSwapPairContract = res[1];
+    token0Symbol = res[2];
+    token1Symbol = res[3];
 
     // Subscribe to events outside the context of automated tests. 
     if (network.name != "hardhat") {
