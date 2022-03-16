@@ -146,6 +146,7 @@ function calculateDifference(uPrice, sPrice) {
 
 async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
     // ! Need to update. 
+    // Concurrency here.
     const trade1 = await _routerPath[0].methods.getAmountsOut(amount, [_token0.address, _token1.address]).call()
     const trade2 = await _routerPath[1].methods.getAmountsOut(trade1[1], [_token1.address, _token0.address]).call()
 
