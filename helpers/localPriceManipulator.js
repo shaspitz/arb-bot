@@ -52,18 +52,17 @@ async function setupAndManipulatePrice(amount) {
     await manipulatePrice(erc20Contract, routerToUse, recieverOfSwap, amount); 
 
     // Fetch price of SHIB/WETH after the swap.
-    const priceAfter = await calculatePrice(pairContract);
-
-    const ercSymbol = await erc20Contract.symbol(); 
+    const [priceAfter, ercSymbol, balance] = await Promise.all([
+        calculatePrice(pairContract),
+        erc20Contract.symbol(),
+        wEthContract.balanceOf(recieverOfSwap),
+    ]);
     const data = {
         'Price Before': `1 ${WETH[CHAIN_ID].symbol} = ${Number(priceBefore).toFixed(0)} ${ercSymbol}`,
         'Price After': `1 ${WETH[CHAIN_ID].symbol} = ${Number(priceAfter).toFixed(0)} ${ercSymbol}`,
     }
     console.table(data);
-
-    const balance = await wEthContract.balanceOf(recieverOfSwap);
     balanceInWEth = ethers.utils.formatEther(balance.toString());
-
     console.log(`\nBalance in reciever account[${recieverOfSwap}]: ${balanceInWEth} WETH.\n`);
 
     await stopImpersonatingWhale();
@@ -84,7 +83,7 @@ async function impersonateWhaleAccount() {
 }
 
 async function stopImpersonatingWhale() {
-    await hre.network.provider.request({
+    return hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [ACCOUNT_TO_IMPERSONATE],
     });
