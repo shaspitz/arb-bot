@@ -121,10 +121,11 @@ async function initialSetup() {
  */
 async function getPriceDifferencePercent() {
     
-    const blockNumber = await provider.getBlockNumber();
-
-    const uniSwapPrice = await calculatePrice(uniSwapPairContract);
-    const sushiSwapPrice = await calculatePrice(sushiSwapPairContract);
+    const [blockNumber, uniSwapPrice, sushiSwapPrice] = await Promise.all([
+        provider.getBlockNumber(),
+        calculatePrice(uniSwapPairContract),
+        calculatePrice(sushiSwapPairContract),
+    ]);
 
     const formattedUniSwapPrice = Number(uniSwapPrice).toFixed(units);
     const formattedSushiSwapPrice = Number(sushiSwapPrice).toFixed(units);
@@ -220,6 +221,8 @@ async function determineProfitability(routerPath, token0Contract, token0, token1
         ethBalanceBefore = web3.utils.fromWei(ethBalanceBefore, 'ether')
         const ethBalanceAfter = ethBalanceBefore - estimatedGasCost
 
+        // TODO: update the rest of this method, use task concurrency where possible. 
+
         const amountDifference = amountOut - amountIn
         let wethBalanceBefore = await _token0Contract.methods.balanceOf(account).call()
         wethBalanceBefore = web3.utils.fromWei(wethBalanceBefore, 'ether')
@@ -277,7 +280,9 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
         startOnUniswap = false
     }
 
-    // Fetch token balance before
+    // TODO: update the rest of this method, use task concurrency where possible. 
+
+    // Fetch token balances before trade.
     const balanceBefore = await _token0Contract.methods.balanceOf(account).call()
     const ethBalanceBefore = await web3.eth.getBalance(account)
 
@@ -307,7 +312,7 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
         'Total Gained/Lost': `${web3.utils.fromWei((balanceDifference - totalSpent).toString(), 'ether')} ETH`
     }
 
-    console.table(data)
+    console.table(data);
 }
 
 module.exports = {
