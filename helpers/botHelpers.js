@@ -5,7 +5,6 @@ const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { getTokenContracts, getPairContract, calculatePrice,
     getEstimatedReturn, getReserves, configureArbContractAndSigner, getProvider, } = require('../helpers/generalHelpers');
-const Big = require("big.js");
 
 // Token we're attempting to gain.
 const arbFor = process.env.ARB_FOR;
@@ -221,14 +220,14 @@ async function determineProfitability(routerPath) {
         // Here, we are obtaining the minimum amount of token0 we'd need to swap on the "buy" exchange,
         // to obtain HALF the amount of token1 in the reserves of the "sell" exchange. 
         let result = await routerPath[0].getAmountsIn(
-            Big(reservesOfSellExchange[1]).div(2).toString(), // AmountOut, in token1.
+            reservesOfSellExchange[1].div(2), // AmountOut, in token1.
             [token0Contract.address, token1Contract.address] // Path.
         ); 
 
         const minToken0In = result[0];
         const token1Out = result[1];
 
-        console.assert(token1Out.toString() == Big(reservesOfSellExchange[1]).div(2).toString(),
+        console.assert(token1Out.toString() == reservesOfSellExchange[1].div(2).toString(),
             `We have specified an amount of output tokens from the buy exchange,
                 equal to HALF the reserve of that token on the sell exchange`);
 

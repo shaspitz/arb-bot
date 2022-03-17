@@ -13,7 +13,7 @@ describe("Bot helpers module", async function () {
     await initialSetup();
   })
 
-  it.only(`Test functionality of getPriceDifferencePercent, how it feeds into determineDirection, 
+  it(`Test functionality of getPriceDifferencePercent, how it feeds into determineDirection, 
     and finally how this feeds into the determineProfitability function.`,
     async function () {
     const priceDiffBefore = await getPriceDifferencePercent();
