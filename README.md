@@ -8,6 +8,7 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 
 ## Setup
 
+
 ### Create an .env file
 Before running any scripts, you'll want to create a .env file with the following values (see .env.example):
 
@@ -20,6 +21,7 @@ Before running any scripts, you'll want to create a .env file with the following
 - **GAS_LIMIT=600000** (Currently a hardcoded value, may need to adjust during testing)
 - **GAS_PRICE=0.0093** (Currently a hardcoded value, may need to adjust during testing)
 
+
 ### About config.json
 Inside the *config.json* file, under the PROJECT_SETTINGS object, there are 2 keys that hold a boolean value:
 - isLocal
@@ -29,6 +31,7 @@ isLocal: Whether bot should monitor a local hardhat netowork for arb opportuniti
 
 shouldExecuteTrade: Whether the bot should execute a trade on the custom contract if an arb opportunity is found. This is helpful if you want to monitor mainnet for arb opportunities, but don'
 t yet have a contract deployed. 
+
 
 ### Local Testing
 1. Install Node.js if needed.
@@ -42,6 +45,7 @@ t yet have a contract deployed.
 
 
 ## Design
+
 
 ### Anatomy of bot.js -- TODO: update from recent refactors, most functionality is in bot helpers.. docstrings there are fine. but a quick TLDR of overall idea is better here. 
 The bot is essentially composed of 5 functions.
@@ -61,8 +65,8 @@ If **routerPath** is not null, then *determineProfitability()* determines whethe
 
 If *determineProfitability()* returns true, *executeTrade()* is called, where we make our call to the custom arbitrage contract to perform an arb trade. Afterwards a report is logged, and the bot resumes monitoring.
 
-### Simple Strategy Overview
 
+### Simple Strategy Overview
 The first-pass strategy implemented is only a simple example with two hardcoded ERC20 tokens. Note that profitable strategies may require more complexity.
 
 _Planning_
@@ -76,6 +80,7 @@ If the value of token0 that would be gained exceeds gas fees in ETH (and potenti
 _Execution_
 
 If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, funds will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
+
 
 ## Tests
 Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
