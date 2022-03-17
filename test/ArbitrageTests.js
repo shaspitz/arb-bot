@@ -33,7 +33,7 @@ describe("Arbitrage contract", async function () {
     const token1 = ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.
     console.log("TODO: hardcoded flash amount for now. Can prob unit test more of the profit finding" +
     " functionality from bot.js");
-    const flashAmount = AMOUNT / 3; // eh for now lets say we are able to borrow some portion of what the whale dumped.
+    const flashAmount = AMOUNT; 
 
     const balanceBefore = await arbForContract.balanceOf(await deployer.getAddress());
 
@@ -46,8 +46,10 @@ describe("Arbitrage contract", async function () {
 
     const balanceAfter = await arbForContract.balanceOf(await deployer.getAddress());
 
-    const someArbitraryProfit = ethers.utils.parseEther("0.0001"); 
-    expect(balanceAfter - balanceBefore).to.be.greaterThanOrEqual(Number(someArbitraryProfit));
+    const someArbitraryProfitInEther = 0.001; 
+    const profit = ethers.utils.formatEther(balanceAfter - balanceBefore);
+    console.log("Arb profit (ETH): ", profit);
+    expect(Number(profit)).to.be.greaterThanOrEqual(someArbitraryProfitInEther);
   })
 });
 
