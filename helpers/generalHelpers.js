@@ -143,20 +143,31 @@ function calculateDifference(uPrice, sPrice) {
     // ! Need to update.
     return (((uPrice - sPrice) / sPrice) * 100).toFixed(2)
 }
+
 /**
- * @param  {} amount
+ * Obtains the amount of a token that'd be obtained from a two-dex arbitrage swap, given an amout
+ * of input token, relevant router path, and token addresses.
+ * 
+ * See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsout
+ * The uniswap-based function calculates a maximum output token amount given an input amount, accounting for reserves. 
+ * 
+ * @param  {} amountInToken0 to swap with first DEX, obtain an intermediary token,
+ * and swap back with second DEX for original token.
  * @param  {} routerPath
  * @param  {} token0Address
  * @param  {} token1Address
  */
-async function getEstimatedReturn(amount, routerPath, token0Address, token1Address) {
-    const trade1 = await routerPath[0].getAmountsOut(amount, [token0Address, token1Address]);
+async function getEstimatedReturn(amountInToken0, routerPath, token0Address, token1Address) {
+    const trade1 = await routerPath[0].getAmountsOut(amountInToken0, [token0Address, token1Address]);
     const trade2 = await routerPath[1].getAmountsOut(trade1[1], [token1Address, token0Address]);
 
     const amountIn = Number(ethers.utils.formatEther(trade1[0]));
-    const amountOut = Number(ethers.utils.formatEther(trade2[1]));
 
-    return { amountIn, amountOut };
+    console.assert(amountIn == Number(ethers.utils.formatEther(amountInToken0)),
+        "Input parameter and amountIn as returned by router functions should match.");
+    
+    const amountOut = Number(ethers.utils.formatEther(trade2[1]));
+    return amountOut;
 }
 
 module.exports = {

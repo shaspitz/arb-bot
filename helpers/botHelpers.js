@@ -11,7 +11,7 @@ const arbFor = process.env.ARB_FOR;
 // Intermediary token in arb process.
 const arbAgainst = process.env.ARB_AGAINST;
 // Account to recieve profit.
-const account = process.env.ACCOUNT;
+let account = process.env.ACCOUNT;
 // Used for price display/reporting.
 const units = process.env.UNITS;
 const priceDifferenceThresh = process.env.PRICE_DIFFERENCE;
@@ -85,6 +85,10 @@ async function initialSetup() {
         sushiSwapPairContract.on("Swap", async () => {
             await handleSwapEvent("Sushiswap");
         });
+    // For automated tests, populate account variable properly. 
+    } else {
+        const accounts = await provider.listAccounts();
+        account = accounts[0];
     }
 }
 
@@ -195,8 +199,6 @@ async function determineProfitability(routerPath) {
     // Liquidity reserves of DEX pair contract, first value being token0, second value being token1. 
     let reservesOfSellExchange;
 
-    // ! TODO: Make a reserves depletion threshold?.. Don't try to buy the whole reserve lol.
-    
     // Populate strings for logging, obtain reserves of exchange that we'll potentially sell on.
     let exchangeToBuy, exchangeToSell;
     if (buyOnUniSwap) {
@@ -214,7 +216,8 @@ async function determineProfitability(routerPath) {
     console.log(`${token1Symbol}: ${ethers.utils.formatEther(reservesOfSellExchange[1]).toString()}\n`);
 
     try {
-
+        // ! TODO: Make a reserves depletion threshold?.. Current thresh is hardcoded as half.
+    
         // See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsin.
         // The uniswap-based function calculates a minimum input token amount given an output amount, accounting for reserves. 
         // Here, we are obtaining the minimum amount of token0 we'd need to swap on the "buy" exchange,
@@ -231,24 +234,26 @@ async function determineProfitability(routerPath) {
             `We have specified an amount of output tokens from the buy exchange,
                 equal to HALF the reserve of that token on the sell exchange`);
 
-        return true;
-
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsout.
         // The uniswap-based function calculates a maximum output token amount given an input amount, accounting for reserves. 
-        // Here, we are attempting 
+        // Here, we are obtaining the maximum amount of token0 we could get from the "sell" exchange,
+        // for the amount of token1 we'd be able to obtain from the "buy" exchange. This would deplete
+        // HALF of the reserves for token1 in the "sell" exchange.
         result = await routerPath[1].getAmountsOut(
-            token1In, // AmountIn, in token1.
+            token1Out, // AmountIn for this function is specified amountOut in token1 from last function.
             [token1Contract.address, token0Contract.address] // Path.
         );
 
-        console.log(`Estimated amount of ${token0Symbol} needed to buy enough ${token1Symbol} on ${exchangeToBuy}\t\t| ${ethers.utils.formatEther(token0In)}`);
+        console.log(`Estimated amount of ${token0Symbol} needed to buy enough ${token1Symbol} on ${exchangeToBuy}\t\t| ${ethers.utils.formatEther(minToken0In)}`);
         console.log(`Estimated amount of ${token0Symbol} returned after swapping ${token1Symbol} on ${exchangeToSell}\t| ${ethers.utils.formatEther(result[1])}\n`);
 
-        const { amountIn, amountOut } = await getEstimatedReturn(token0In, routerPath, _token0, _token1)
+        const token0Out = await getEstimatedReturn(minToken0In, routerPath, token0Contract.address, token1Contract.address);
 
-        let ethBalanceBefore = await web3.eth.getBalance(account)
-        ethBalanceBefore = web3.utils.fromWei(ethBalanceBefore, 'ether')
-        const ethBalanceAfter = ethBalanceBefore - estimatedGasCost
+        let ethBalanceBefore = await provider.getBalance(account);
+        ethBalanceBefore = ethers.utils.formatEther(ethBalanceBefore);
+        const ethBalanceAfter = ethBalanceBefore - estimatedGasCost;
+
+        return true;
 
         // TODO: update the rest of this method, use task concurrency where possible. 
 
@@ -284,6 +289,7 @@ async function determineProfitability(routerPath) {
         return true;
 
     } catch (error) {
+        console.log(error.stack);
         console.log(`\nError occured while trying to determine profitability...\n`);
         console.log(`This can typically happen due to issues with reserves\n`);
         return false;
@@ -299,7 +305,8 @@ async function determineProfitability(routerPath) {
  * @param  {} _token1Contract
  */
 async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
-    console.log(`Attempting Arbitrage...\n`)
+    console.log(`Attempting Arbitrage...\n`);
+    console.log(`Account to execute transaction: ${account.toString()}`);
 
     let startOnUniswap
 
