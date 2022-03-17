@@ -161,12 +161,10 @@ async function getEstimatedReturn(amountInToken0, routerPath, token0Address, tok
     const trade1 = await routerPath[0].getAmountsOut(amountInToken0, [token0Address, token1Address]);
     const trade2 = await routerPath[1].getAmountsOut(trade1[1], [token1Address, token0Address]);
 
-    const amountIn = Number(ethers.utils.formatEther(trade1[0]));
-
-    console.assert(amountIn == Number(ethers.utils.formatEther(amountInToken0)),
-        "Input parameter and amountIn as returned by router functions should match.");
+    console.assert(trade1[0] == amountInToken0,
+        "Input parameter and amount as returned by router functions should match.");
     
-    const amountOut = Number(ethers.utils.formatEther(trade2[1]));
+    const amountOut = trade2[1];
     return amountOut;
 }
 

@@ -180,18 +180,26 @@ async function determineDirection(priceDifferencePercent, thresh) {
 }
 
 /**
- * TODO: summary!
+ * A basic/first-pass strategy for determining arbitrage profitability between uniswap
+ * and sushiswap. 
+ * 
+ * First, we get the token reserves from the second ("sell") DEX, then choose a portion of 
+ * the token1 ("arb against") reserve. This will be the theoretical amount to obtain from the first ("buy") DEX,
+ * right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to get our 
+ * set amount of token1 from the "buy" DEX. Lastly, we compute the max amount of token0 we can obtain
+ * from selling our set amount of token1 on the "sell" DEX. 
+ * 
+ * If the value of token0 that is gained exceeds gas fees in ETH, the theoretical trade would
+ * be profitable, and we return true. Otherwise we return false.  
+ * 
+ * In this simple example, token0 is WETH, which makes profit calcs pretty easy.
+ * 
  * @param  {} routerPath
  */
 async function determineProfitability(routerPath) {
     console.log(`Determining Profitability...\n`);
 
-    // This is where you can customize your conditions on whether a profitable trade is possible.
-    // This is a basic example of trading WETH/SHIB...
-
-    // TODO: Need to look into how slippage relates to everything here. Strategy can stay simple in this repo,
-    // but should be more complex in private repo. At least type up a good explanation.
-
+    // First router contract in path is the DEX we buy from.
     let buyOnUniSwap;
     if (routerPath[0].address == uniSwapRouterContract.address) buyOnUniSwap = true;
     else buyOnUniSwap = false;
@@ -249,45 +257,32 @@ async function determineProfitability(routerPath) {
 
         const token0Out = await getEstimatedReturn(minToken0In, routerPath, token0Contract.address, token1Contract.address);
 
-        let ethBalanceBefore = await provider.getBalance(account);
-        ethBalanceBefore = ethers.utils.formatEther(ethBalanceBefore);
-        const ethBalanceAfter = ethBalanceBefore - estimatedGasCost;
+        let ethBalanceBefore = ethers.utils.formatEther(await provider.getBalance(account));
+        const ethBalanceAfter = Number(ethBalanceBefore) - Number(estimatedGasCost);
 
-        return true;
+        const theoreticalToken0ToGain = ethers.utils.formatEther(token0Out - minToken0In);
+        const token0Before = ethers.utils.formatEther(await token0Contract.balanceOf(account));
 
-        // TODO: update the rest of this method, use task concurrency where possible. 
-
-        const amountDifference = amountOut - amountIn
-        let wethBalanceBefore = await _token0Contract.methods.balanceOf(account).call()
-        wethBalanceBefore = web3.utils.fromWei(wethBalanceBefore, 'ether')
-
-        const wethBalanceAfter = amountDifference + Number(wethBalanceBefore)
-        const wethBalanceDifference = wethBalanceAfter - Number(wethBalanceBefore)
-
-        const totalGained = wethBalanceDifference - Number(estimatedGasCost)
+        const token0After = Number(token0Before) + Number(theoreticalToken0ToGain);
+        const totalGained = Number(theoreticalToken0ToGain) - Number(estimatedGasCost);
 
         const data = {
             'ETH Balance Before': ethBalanceBefore,
             'ETH Balance After': ethBalanceAfter,
             'ETH Spent (gas)': estimatedGasCost,
             '-': {},
-            'WETH Balance BEFORE': wethBalanceBefore,
-            'WETH Balance AFTER': wethBalanceAfter,
-            'WETH Gained/Lost': wethBalanceDifference,
+            'Token0 Balance BEFORE': token0Before, // WETH for now.
+            'Token0 Balance AFTER': token0After,
+            'Token0 Gained/Lost': theoreticalToken0ToGain,
             '-': {},
             'Total Gained/Lost': totalGained
-        }
+        };
 
-        console.table(data)
-        console.log()
+        console.table(data);
 
-        if (amountOut < amountIn) {
-            return false
-        }
-
-        amount = token0In
+        if (totalGained <= 0) return false;
+        amount = minToken0In;
         return true;
-
     } catch (error) {
         console.log(error.stack);
         console.log(`\nError occured while trying to determine profitability...\n`);
@@ -319,19 +314,28 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
     // TODO: update the rest of this method, use task concurrency where possible. 
 
     // Fetch token balances before trade.
-    const balanceBefore = await _token0Contract.methods.balanceOf(account).call()
-    const ethBalanceBefore = await web3.eth.getBalance(account)
+    let res = await Promise.all([
+        token0Contract.balanceOf(account),
+        provider.getBalance(account),
+    ]);
+    const balanceBefore = res[0];
+    const ethBalanceBefore = res[1];
 
     if (config.PROJECT_SETTINGS.shouldExecuteTrade) {
-        await _token0Contract.methods.approve(arbitrage._address, amount).send({ from: account })
+        // TODO! fix this
+        await token0Contract.methods.approve(arbitrage._address, amount).send({ from: account })
         await arbitrage.methods.executeTrade(startOnUniswap, _token0Contract._address, _token1Contract._address, amount).send({ from: account, gas: gas })
     }
 
-    console.log(`Trade Complete:\n`)
+    console.log(`Trade Complete:\n`);
 
-    // Fetch token balance after
-    const balanceAfter = await _token0Contract.methods.balanceOf(account).call()
-    const ethBalanceAfter = await web3.eth.getBalance(account)
+    // Fetch token balances after trade.
+    res = await Promise.all([
+        token0Contract.balanceOf(account),
+        provider.getBalance(account),
+    ]);
+    const balanceAfter = res[0];
+    const ethBalanceAfter = res[1];
 
     const balanceDifference = balanceAfter - balanceBefore
     const totalSpent = ethBalanceBefore - ethBalanceAfter

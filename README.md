@@ -62,12 +62,20 @@ If **routerPath** is not null, then *determineProfitability()* determines whethe
 If *determineProfitability()* returns true, *executeTrade()* is called, where we make our call to the custom arbitrage contract to perform an arb trade. Afterwards a report is logged, and the bot resumes monitoring.
 
 ### Simple Strategy Overview
-The first-pass strategy implemented is only a simple example that goes along with the local price manipulation script. Note that profitable strategies may require more DEXs than just uniswap and sushiswap.
 
-TODO: make strategy more intentional. Still dealing with hooking things up.
+The first-pass strategy implemented is only a simple example with two hardcoded ERC20 tokens. Note that profitable strategies may require more complexity.
 
-If arbitrage direction is opposite, this strategy can fall apart. At least in the case that Sushiswap has lower reserves than uniswap. TODO: this can prob be fixed with a simple check.
+_Planning_
 
+Consider two tokens, one we're "arbing for profits", and one intermediary token we're "arbing against". We'll also use two DEXs in this example, one to swap from our "arb for" token to the "arb against" token, and one to swap back from "arb against" to "arb for" tokens. The hope is that you'd end with more tokens than you've started with, after accounting for gas and flash loan fees.  
+
+First, we get the token reserves from the second ("sell") DEX, then choose a portion of the token1 ("arb against") reserve. This portion will be the theoretical amount of token1 to obtain from the first ("buy") DEX, right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to obtain our set amount of token1 from the "buy" DEX. Lastly, we compute the maximum amount of token0 we can obtain from selling our set amount of token1 on the "sell" DEX.
+ 
+If the value of token0 that would be gained exceeds gas fees in ETH (and potential flash loan fees), the theoretical trade would be profitable.
+
+_Execution_
+
+If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, funds will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
 
 ## Tests
 Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
