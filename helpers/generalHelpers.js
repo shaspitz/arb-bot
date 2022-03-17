@@ -143,17 +143,20 @@ function calculateDifference(uPrice, sPrice) {
     // ! Need to update.
     return (((uPrice - sPrice) / sPrice) * 100).toFixed(2)
 }
+/**
+ * @param  {} amount
+ * @param  {} routerPath
+ * @param  {} token0Address
+ * @param  {} token1Address
+ */
+async function getEstimatedReturn(amount, routerPath, token0Address, token1Address) {
+    const trade1 = await routerPath[0].getAmountsOut(amount, [token0Address, token1Address]);
+    const trade2 = await routerPath[1].getAmountsOut(trade1[1], [token1Address, token0Address]);
 
-async function getEstimatedReturn(amount, _routerPath, _token0, _token1) {
-    // ! Need to update. 
-    // Concurrency here.
-    const trade1 = await _routerPath[0].methods.getAmountsOut(amount, [_token0.address, _token1.address]).call()
-    const trade2 = await _routerPath[1].methods.getAmountsOut(trade1[1], [_token1.address, _token0.address]).call()
+    const amountIn = Number(ethers.utils.formatEther(trade1[0]));
+    const amountOut = Number(ethers.utils.formatEther(trade2[1]));
 
-    const amountIn = Number(web3.utils.fromWei(trade1[0], 'ether'))
-    const amountOut = Number(web3.utils.fromWei(trade2[1], 'ether'))
-
-    return { amountIn, amountOut }
+    return { amountIn, amountOut };
 }
 
 module.exports = {

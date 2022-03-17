@@ -5,6 +5,7 @@ const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { getTokenContracts, getPairContract, calculatePrice,
     getEstimatedReturn, getReserves, configureArbContractAndSigner, getProvider, } = require('../helpers/generalHelpers');
+const Big = require("big.js");
 
 // Token we're attempting to gain.
 const arbFor = process.env.ARB_FOR;
@@ -29,7 +30,11 @@ let amount; // TODO: make "amount" more descriptive.
 
 let provider;
 
-let token0Symbol, token1Symbol;
+let token0Symbol, // Symbol of token we're arbing for.
+token1Symbol; // Symbol of token we're arbing against.
+
+let token0Contract, // Contract of token we're arbing for.
+token1Contract; // Contract of token we're arbing against.
 
 // Bool to prevent reentrancy-like bugs in the swap event handler.
 // A tool like https://medium.com/@chris_marois/asynchronous-locks-in-modern-javascript-8142c877baf
@@ -56,7 +61,10 @@ async function initialSetup() {
     sushiSwapFactoryContract = new ethers.Contract(config.SUSHISWAP.FACTORY_ADDRESS, IUniswapV2Factory.abi, signer);
     sushiSwapRouterContract = new ethers.Contract(config.SUSHISWAP.V2_ROUTER_02_ADDRESS, IUniswapV2Router02.abi, signer);
 
-    const { token0Contract, token1Contract } = await getTokenContracts(arbFor, arbAgainst, signer);
+    res = await getTokenContracts(arbFor, arbAgainst, signer);
+
+    token0Contract = res.token0Contract;
+    token1Contract = res.token1Contract;
 
     res = await Promise.all([
         getPairContract(uniSwapFactoryContract, token0Contract.address, token1Contract.address, signer),
@@ -101,7 +109,7 @@ async function initialSetup() {
             return;
         }
 
-        const isProfitable = await determineProfitability(routerPath, token0Contract, token0, token1);
+        const isProfitable = await determineProfitability(routerPath);
 
         if (!isProfitable) {
             console.log(`No Arbitrage Currently Available\n`);
@@ -150,7 +158,7 @@ async function getPriceDifferencePercent() {
  */
 async function determineDirection(priceDifferencePercent, thresh) {
 
-    console.log(`Determining Direction...\n`)
+    console.log(`Determining Direction...\n`);
 
     if (priceDifferencePercent >= thresh) {
         console.log(`Potential Arbitrage Direction:\n`);
@@ -160,9 +168,9 @@ async function determineDirection(priceDifferencePercent, thresh) {
     }
     
     if (priceDifferencePercent <= -thresh) {
-        console.log(`Potential Arbitrage Direction:\n`)
-        console.log(`Buy\t -->\t Sushiswap`)
-        console.log(`Sell\t -->\t Uniswap\n`)
+        console.log(`Potential Arbitrage Direction:\n`);
+        console.log(`Buy\t -->\t Sushiswap`);
+        console.log(`Sell\t -->\t Uniswap\n`);
         return [sushiSwapRouterContract, uniSwapRouterContract];
     } 
     return null;
@@ -171,51 +179,73 @@ async function determineDirection(priceDifferencePercent, thresh) {
 /**
  * TODO: summary!
  * @param  {} routerPath
- * @param  {} token0Contract
- * @param  {} token0
- * @param  {} token1
  */
-async function determineProfitability(routerPath, token0Contract, token0, token1) {
-    console.log(`Determining Profitability...\n`)
+async function determineProfitability(routerPath) {
+    console.log(`Determining Profitability...\n`);
 
     // This is where you can customize your conditions on whether a profitable trade is possible.
     // This is a basic example of trading WETH/SHIB...
 
-    // TODO: Move intelligent logic to a private repo. Anyone can have this simple example tho.
-
     // TODO: Need to look into how slippage relates to everything here. Strategy can stay simple in this repo,
     // but should be more complex in private repo. At least type up a good explanation.
 
-    let reserves, exchangeToBuy, exchangeToSell
+    let buyOnUniSwap;
+    if (routerPath[0].address == uniSwapRouterContract.address) buyOnUniSwap = true;
+    else buyOnUniSwap = false;
 
-    if (_routerPath[0]._address == uRouter._address) {
-        reserves = await getReserves(sPair)
-        exchangeToBuy = 'Uniswap'
-        exchangeToSell = 'Sushiswap'
+    // Liquidity reserves of DEX pair contract, first value being token0, second value being token1. 
+    let reservesOfSellExchange;
+
+    // ! TODO: Make a reserves depletion threshold?.. Don't try to buy the whole reserve lol.
+    
+    // Populate strings for logging, obtain reserves of exchange that we'll potentially sell on.
+    let exchangeToBuy, exchangeToSell;
+    if (buyOnUniSwap) {
+        reservesOfSellExchange = await getReserves(sushiSwapPairContract);
+        exchangeToBuy = "Uniswap";
+        exchangeToSell = "Sushiswap";
     } else {
-        reserves = await getReserves(uPair)
-        exchangeToBuy = 'Sushiswap'
-        exchangeToSell = 'Uniswap'
+        reservesOfSellExchange = await getReserves(uniSwapPairContract);
+        exchangeToBuy = "Sushiswap";
+        exchangeToSell = "Uniswap";
     }
 
-    console.log(`Reserves on ${_routerPath[1]._address}`)
-    console.log(`SHIB: ${Number(web3.utils.fromWei(reserves[0].toString(), 'ether')).toFixed(0)}`)
-    console.log(`WETH: ${web3.utils.fromWei(reserves[1].toString(), 'ether')}\n`)
+    console.log(`Reserves on exchange for potential sell [${exchangeToSell}: ${routerPath[1].address}]\n`);
+    console.log(`${token0Symbol}: ${ethers.utils.formatEther(reservesOfSellExchange[0]).toString()}\n`);
+    console.log(`${token1Symbol}: ${ethers.utils.formatEther(reservesOfSellExchange[1]).toString()}\n`);
 
     try {
 
-        // This returns the amount of WETH needed
-        let result = await _routerPath[0].methods.getAmountsIn(reserves[0], [_token0.address, _token1.address]).call()
+        // See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsin.
+        // The uniswap-based function calculates a minimum input token amount given an output amount, accounting for reserves. 
+        // Here, we are obtaining the minimum amount of token0 we'd need to swap on the "buy" exchange,
+        // to obtain HALF the amount of token1 in the reserves of the "sell" exchange. 
+        let result = await routerPath[0].getAmountsIn(
+            Big(reservesOfSellExchange[1]).div(2).toString(), // AmountOut, in token1.
+            [token0Contract.address, token1Contract.address] // Path.
+        ); 
 
-        const token0In = result[0] // WETH
-        const token1In = result[1] // SHIB
+        const minToken0In = result[0];
+        const token1Out = result[1];
 
-        result = await _routerPath[1].methods.getAmountsOut(token1In, [_token1.address, _token0.address]).call()
+        console.assert(token1Out.toString() == Big(reservesOfSellExchange[1]).div(2).toString(),
+            `We have specified an amount of output tokens from the buy exchange,
+                equal to HALF the reserve of that token on the sell exchange`);
 
-        console.log(`Estimated amount of WETH needed to buy enough Shib on ${exchangeToBuy}\t\t| ${web3.utils.fromWei(token0In, 'ether')}`)
-        console.log(`Estimated amount of WETH returned after swapping SHIB on ${exchangeToSell}\t| ${web3.utils.fromWei(result[1], 'ether')}\n`)
+        return true;
 
-        const { amountIn, amountOut } = await getEstimatedReturn(token0In, _routerPath, _token0, _token1)
+        // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsout.
+        // The uniswap-based function calculates a maximum output token amount given an input amount, accounting for reserves. 
+        // Here, we are attempting 
+        result = await routerPath[1].getAmountsOut(
+            token1In, // AmountIn, in token1.
+            [token1Contract.address, token0Contract.address] // Path.
+        );
+
+        console.log(`Estimated amount of ${token0Symbol} needed to buy enough ${token1Symbol} on ${exchangeToBuy}\t\t| ${ethers.utils.formatEther(token0In)}`);
+        console.log(`Estimated amount of ${token0Symbol} returned after swapping ${token1Symbol} on ${exchangeToSell}\t| ${ethers.utils.formatEther(result[1])}\n`);
+
+        const { amountIn, amountOut } = await getEstimatedReturn(token0In, routerPath, _token0, _token1)
 
         let ethBalanceBefore = await web3.eth.getBalance(account)
         ethBalanceBefore = web3.utils.fromWei(ethBalanceBefore, 'ether')
@@ -252,18 +282,18 @@ async function determineProfitability(routerPath, token0Contract, token0, token1
         }
 
         amount = token0In
-        return true
+        return true;
 
     } catch (error) {
-        console.log(error.data.stack)
-        console.log(`\nError occured while trying to determine profitability...\n`)
-        console.log(`This can typically happen because an issue with reserves, see README for more information.\n`)
-        return false
+        console.log(`\nError occured while trying to determine profitability...\n`);
+        console.log(`This can typically happen due to issues with reserves\n`);
+        return false;
     }
 }
 
 /**
- * TODO: summary
+ * Attemps to execute trade using the custom method
+ * TODO: make better.
  * TODO: var names
  * @param  {} _routerPath
  * @param  {} _token0Contract
@@ -275,9 +305,9 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
     let startOnUniswap
 
     if (_routerPath[0]._address == uRouter._address) {
-        startOnUniswap = true
+        startOnUniswap = true;
     } else {
-        startOnUniswap = false
+        startOnUniswap = false;
     }
 
     // TODO: update the rest of this method, use task concurrency where possible. 
@@ -319,4 +349,5 @@ module.exports = {
     initialSetup,
     getPriceDifferencePercent,
     determineDirection,
+    determineProfitability,
 }
