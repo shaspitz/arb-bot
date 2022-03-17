@@ -161,7 +161,7 @@ async function getEstimatedReturn(amountInToken0, routerPath, token0Address, tok
     const trade1 = await routerPath[0].getAmountsOut(amountInToken0, [token0Address, token1Address]);
     const trade2 = await routerPath[1].getAmountsOut(trade1[1], [token1Address, token0Address]);
 
-    console.assert(trade1[0] == amountInToken0,
+    console.assert(trade1[0].toString() == amountInToken0.toString(),
         "Input parameter and amount as returned by router functions should match.");
     
     const amountOut = trade2[1];
