@@ -1,16 +1,20 @@
 const { expect } = require("chai");
 require("dotenv").config();
 const config = require('../config.json');
-const { initialSetup, getPriceDifferencePercent, determineDirection, determineProfitability, } = require("../helpers/botHelpers");
+const { initialSetup, getPriceDifferencePercent, determineDirection,
+  determineProfitability, executeTrade } = require("../helpers/botHelpers");
 const { setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
 const { resetHardhatToFork } = require('../helpers/generalHelpers');
 
+let token0Contract, token1Contract;
 
 describe("Bot helpers module", async function () {
 
   beforeEach(async function () {
     await resetHardhatToFork();
-    await initialSetup();
+    const res = await initialSetup();
+    token0Contract = res[0];
+    token1Contract = res[1];
   })
 
   it(`Test functionality of getPriceDifferencePercent, how it feeds into determineDirection, 
@@ -21,7 +25,7 @@ describe("Bot helpers module", async function () {
     // Local price manipulator dumps SHIB into a SHIB/WETH pool on uniswap. 
     // Therefore the SHIB/WETH price on uniswap should go up, and percentage
     // returned from "checkPrice" (uni price - sushi price) / sushi price should go up too.  
-    const arbitraryDumpAmount = "1000000000";
+    const arbitraryDumpAmount = "100000000000";
     await setupAndManipulatePrice(arbitraryDumpAmount); 
 
     const priceDiffAfter = await getPriceDifferencePercent();
@@ -33,11 +37,18 @@ describe("Bot helpers module", async function () {
     expect(routerPath[0].address).to.be.equal(config.UNISWAP.V2_ROUTER_02_ADDRESS);
 
     const isProfitable = await determineProfitability(routerPath);
-    console.log(isProfitable);
-  });
+    console.log("Is this trade profitable?:", isProfitable);
 
-  it("Test function that executes trade on custom Solidity contract.",
-  async function () {
-    // TODO: populate this.
-  })
+    // Sushiswap does not have enough liquidity (at this EVM fork) for an arb to be profitable.
+    expect(isProfitable).to.be.false;
+
+    // Note that if the "sell" DEX's reserves are depleted, the executeTrade function will not
+    // neccessarily revert, but will only swap a portion of the requested amount to borrow.
+    const success = await executeTrade(routerPath,
+      arbitraryDumpAmount, // amount of token0 to trade
+      token0Contract,
+      token1Contract);
+  
+    expect(success).to.be.true;
+  });
 });

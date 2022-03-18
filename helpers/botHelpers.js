@@ -17,7 +17,7 @@ const units = process.env.UNITS;
 const priceDifferenceThresh = process.env.PRICE_DIFFERENCE;
 
 // TODO: Gas config may change between chains, look into this.
-const gas = process.env.GAS_LIMIT;
+const gasLimit = process.env.GAS_LIMIT;
 const estimatedGasCost = process.env.GAS_PRICE; // Estimated Gas: 0.008453220000006144 ETH + ~10%
 
 let uniSwapPairContract, sushiSwapPairContract,
@@ -25,7 +25,8 @@ let uniSwapPairContract, sushiSwapPairContract,
     sushiSwapFactoryContract, sushiSwapRouterContract,
     arbitrageContract;
 
-let amount; // TODO: make "amount" more descriptive.
+// Amount of token0 to borrow and use for arbitrage.
+let token0TradeAmount;
 
 let provider;
 
@@ -89,6 +90,9 @@ async function initialSetup() {
     } else {
         const accounts = await provider.listAccounts();
         account = accounts[0];
+
+        // Return token contracts for testing.
+        return [token0Contract, token1Contract];
     }
 }
 
@@ -121,7 +125,7 @@ async function initialSetup() {
             return;
         }
 
-        const receipt = await executeTrade(routerPath, token0Contract, token1Contract);
+        await executeTrade(routerPath, token0TradeAmount, token0Contract, token1Contract);
 
         isExecuting = false;
     }
@@ -224,8 +228,6 @@ async function determineProfitability(routerPath) {
     console.log(`${token1Symbol}: ${ethers.utils.formatEther(reservesOfSellExchange[1]).toString()}\n`);
 
     try {
-        // ! TODO: Make a reserves depletion threshold?.. Current thresh is hardcoded as half.
-    
         // See https://docs.uniswap.org/protocol/V2/reference/smart-contracts/library#getamountsin.
         // The uniswap-based function calculates a minimum input token amount given an output amount, accounting for reserves. 
         // Here, we are obtaining the minimum amount of token0 we'd need to swap on the "buy" exchange,
@@ -281,7 +283,7 @@ async function determineProfitability(routerPath) {
         console.table(data);
 
         if (totalGained <= 0) return false;
-        amount = minToken0In;
+        token0TradeAmount = minToken0In;
         return true;
     } catch (error) {
         console.log(error.stack);
@@ -292,26 +294,20 @@ async function determineProfitability(routerPath) {
 }
 
 /**
- * Attemps to execute trade using the custom method
- * TODO: make better.
- * TODO: var names
- * @param  {} _routerPath
- * @param  {} _token0Contract
- * @param  {} _token1Contract
+ * Attemps to execute trade using the "executeTrade" method from the custom arbitrage contract.
+ * @param  {} routerPath
+ * @param  {} tradeAmount of token0.
+ * @param  {} token0Contract
+ * @param  {} token1Contract
  */
-async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
+async function executeTrade(routerPath, tradeAmount, token0Contract, token1Contract) {
     console.log(`Attempting Arbitrage...\n`);
     console.log(`Account to execute transaction: ${account.toString()}`);
 
-    let startOnUniswap
-
-    if (_routerPath[0]._address == uRouter._address) {
-        startOnUniswap = true;
-    } else {
-        startOnUniswap = false;
-    }
-
-    // TODO: update the rest of this method, use task concurrency where possible. 
+    // First router contract in path is the DEX we buy from.
+    let buyOnUniSwap;
+    if (routerPath[0].address == uniSwapRouterContract.address) buyOnUniSwap = true;
+    else buyOnUniSwap = false;
 
     // Fetch token balances before trade.
     let res = await Promise.all([
@@ -322,9 +318,17 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
     const ethBalanceBefore = res[1];
 
     if (config.PROJECT_SETTINGS.shouldExecuteTrade) {
-        // TODO! fix this
-        await token0Contract.methods.approve(arbitrage._address, amount).send({ from: account })
-        await arbitrage.methods.executeTrade(startOnUniswap, _token0Contract._address, _token1Contract._address, amount).send({ from: account, gas: gas })
+        try {
+            await token0Contract.approve(arbitrageContract.address, tradeAmount);
+            const options = { gasLimit: gasLimit };
+            await arbitrageContract.executeTrade(buyOnUniSwap, token0Contract.address,
+            token1Contract.address, tradeAmount, options);
+
+        } catch (error) {
+            console.log(error.stack);
+            console.log(`\nError occured while trying to execute trade...\n`);
+            return false;
+        }
     }
 
     console.log(`Trade Complete:\n`);
@@ -337,22 +341,22 @@ async function executeTrade(_routerPath, _token0Contract, _token1Contract) {
     const balanceAfter = res[0];
     const ethBalanceAfter = res[1];
 
-    const balanceDifference = balanceAfter - balanceBefore
-    const totalSpent = ethBalanceBefore - ethBalanceAfter
+    const token0Gained = balanceAfter - balanceBefore;
+    const ethSpent = ethBalanceBefore - ethBalanceAfter;
 
     const data = {
-        'ETH Balance Before': web3.utils.fromWei(ethBalanceBefore, 'ether'),
-        'ETH Balance After': web3.utils.fromWei(ethBalanceAfter, 'ether'),
-        'ETH Spent (gas)': web3.utils.fromWei((ethBalanceBefore - ethBalanceAfter).toString(), 'ether'),
+        'ETH Balance Before': ethers.utils.formatEther(ethBalanceBefore.toString()),
+        'ETH Balance After': ethers.utils.formatEther(ethBalanceAfter.toString()),
+        'ETH Spent (gas)': ethers.utils.formatEther(ethSpent.toString()),
         '-': {},
-        'WETH Balance BEFORE': web3.utils.fromWei(balanceBefore.toString(), 'ether'),
-        'WETH Balance AFTER': web3.utils.fromWei(balanceAfter.toString(), 'ether'),
-        'WETH Gained/Lost': web3.utils.fromWei(balanceDifference.toString(), 'ether'),
+        'Token0 Balance BEFORE': ethers.utils.formatEther(balanceBefore.toString()),
+        'Token0 Balance AFTER': ethers.utils.formatEther(balanceAfter.toString()),
+        'Token0 Gained/Lost': ethers.utils.formatEther(token0Gained.toString()),
         '-': {},
-        'Total Gained/Lost': `${web3.utils.fromWei((balanceDifference - totalSpent).toString(), 'ether')} ETH`
-    }
-
+        'Total Gained/Lost': `${ethers.utils.formatEther((token0Gained - ethSpent).toString())} ETH`
+    };
     console.table(data);
+    return true;
 }
 
 module.exports = {
@@ -360,4 +364,5 @@ module.exports = {
     getPriceDifferencePercent,
     determineDirection,
     determineProfitability,
+    executeTrade,
 }
