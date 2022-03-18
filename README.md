@@ -3,11 +3,15 @@ Trading bot that utilizes custom Solidity contracts, in conjunction with decentr
 
 To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo with more complexity and DEX integration. 
 
+
+
 ## Technologies
 Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
 
 
+
 ## Design
+
 
 
 ### Anatomy of bot.js -- TODO: update from recent refactors, most functionality is in bot helpers.. docstrings there are fine. but a quick TLDR of overall idea is better here. 
@@ -29,6 +33,7 @@ If **routerPath** is not null, then *determineProfitability()* determines whethe
 If *determineProfitability()* returns true, *executeTrade()* is called, where we make our call to the custom arbitrage contract to perform an arb trade. Afterwards a report is logged, and the bot resumes monitoring.
 
 
+
 ### Simple Strategy Overview
 The first-pass strategy implemented is only a simple example with two hardcoded ERC20 tokens. Note that profitable strategies may require more complexity.
 
@@ -45,6 +50,7 @@ _Execution_
 If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, funds will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
 
 
+
 ## Tests
 Each .js file in ```Tests``` serves a unique purpose, and allowd for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
 
@@ -57,7 +63,9 @@ All tests fork the Ethereum network via Alchemy API, specified by a block number
 ```BotTests.js```: Tests critical funcitons within the Javascript bot. These determine profitability, monitor prices, token reserves, etc. 
 
 
+
 ## Setup
+
 
 
 ### Create an .env file
@@ -73,6 +81,7 @@ Before running any scripts, you'll want to create a .env file with the following
 - **GAS_PRICE=0.0093** (Currently a hardcoded value, may need to adjust during testing)
 
 
+
 ### About config.json
 Inside the *config.json* file, under the PROJECT_SETTINGS object, there are 2 keys that hold a boolean value:
 - isLocal
@@ -84,6 +93,7 @@ shouldExecuteTrade: Whether the bot should execute a trade on the custom contrac
 t yet have a contract deployed. 
 
 
+
 ### Local Testing
 1. Install Node.js if needed.
 2. ```npm install``` should install needed dependencies to the ```node_modules``` folder. Confirm with ```npx hardhat compile```.
@@ -93,6 +103,7 @@ t yet have a contract deployed.
 6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```.
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Run the bot with ```npx hardhat run bot.js --network localhost```.
+
 
 
 ## TODOs
