@@ -1,7 +1,14 @@
 # Arbitrage Bot
-Trading bot that utilizes custom Solidity contracts, in conjunction with decentralized exchange contracts, to execute token arbitrage opportunities on any EVM compatible blockchain. 
+Trading bot that utilizes custom Solidity contracts, in conjunction with decentralized exchange contracts, to capture profit from token arbitrage opportunities on any EVM compatible blockchain. 
 
-To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo with more complexity and DEX integration, along with more in-depth tests. 
+To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo (currently in progress) with more complexity and DEX integration, along with more in-depth tests. 
+
+
+
+## Background
+Check out https://ethereum.org/en/developers/docs/mev/ for context on this project.
+
+There are positives to MEV. DEXs require arbitrage "searchers" to ensure price correctness and stability for their protocols. However, I'm not claiming to be saving the world here :) Just a fun project to sharpen my skills in DEFI related development.
 
 
 
