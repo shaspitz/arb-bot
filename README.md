@@ -111,8 +111,6 @@ t yet have a contract deployed.
  - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove some of these TODOs from public repo **ARB-BOT-DELUXE**
  - Port over JS to TS.
  - Verify bot works and can subscribe to on-chain events in sim. Along with tests running.
- - Everything is fully commented
- - move some of the code (like bot.js and helpers) into an src folder. maybe remove the helpers folder altogether
  - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX. Try out buying/selling from multiple DEXs with one flashloan? Also try changing hardcoded estimated gas amount.
  - In reference to above, why does sushiswap liquidity pool only have 8 SHIB tokens from the EVM fork we're working off? Conversion error somewhere? Or do we just need to look at other DEXs and liquidity pools.
  - See ```determineProfitability``` - should we make a reserved depletion threshold to experiment with different fractions? Currently hardcoded as 1/2.
