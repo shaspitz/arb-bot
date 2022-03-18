@@ -7,44 +7,6 @@ To potential employers reviewing my work, please reach out if you wish to see a 
 Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle. 
 
 
-## Setup
-
-
-### Create an .env file
-Before running any scripts, you'll want to create a .env file with the following values (see .env.example):
-
-- **ALCHEMY_API_KEY=""**
-- **ARB_FOR="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"** (By default we are using WETH)
-- **ARB_AGAINST="0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"** (By default we are using SHIB)
-- **ACCOUNT=""** (Account to recieve profit/execute arbitrage contract)
-- **PRICE_DIFFERENCE=0.50** (Difference in price between Uniswap & Sushiswap, default is 0.50%)
-- **UNITS=0** (Only used for price reporting)
-- **GAS_LIMIT=600000** (Currently a hardcoded value, may need to adjust during testing)
-- **GAS_PRICE=0.0093** (Currently a hardcoded value, may need to adjust during testing)
-
-
-### About config.json
-Inside the *config.json* file, under the PROJECT_SETTINGS object, there are 2 keys that hold a boolean value:
-- isLocal
-- shouldExecuteTrade
-
-isLocal: Whether bot should monitor a local hardhat netowork for arb opportunities. If false, the bot will monitor mainnet. 
-
-shouldExecuteTrade: Whether the bot should execute a trade on the custom contract if an arb opportunity is found. This is helpful if you want to monitor mainnet for arb opportunities, but don'
-t yet have a contract deployed. 
-
-
-### Local Testing
-1. Install Node.js if needed.
-2. ```npm install``` should install needed dependencies to the ```node_modules``` folder. Confirm with ```npx hardhat compile```.
-3. You're able to run tests against an ephemeral local network using ```npx hardhat test```.
-4. To spin up a persistent local network forked off mainnet, first create an https://www.alchemy.com/ account, and copy the api key to ```.env```.
-5. Next, run ```npx hardhat node```.
-6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```.
-7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
-8. Run the bot with ```npx hardhat run bot.js --network localhost```.
-
-
 ## Design
 
 
@@ -93,6 +55,44 @@ All tests fork the Ethereum network via Alchemy API, specified by a block number
 ```ArbitrageTests.js```: Verifies on-chain functionality for the arbitrage contract, and how it interacts with various deployed contracts.
 
 ```BotTests.js```: Tests critical funcitons within the Javascript bot. These determine profitability, monitor prices, token reserves, etc. 
+
+
+## Setup
+
+
+### Create an .env file
+Before running any scripts, you'll want to create a .env file with the following values (see .env.example):
+
+- **ALCHEMY_API_KEY=""**
+- **ARB_FOR="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"** (By default we are using WETH)
+- **ARB_AGAINST="0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"** (By default we are using SHIB)
+- **ACCOUNT=""** (Account to recieve profit/execute arbitrage contract)
+- **PRICE_DIFFERENCE=0.50** (Difference in price between Uniswap & Sushiswap, default is 0.50%)
+- **UNITS=0** (Only used for price reporting)
+- **GAS_LIMIT=600000** (Currently a hardcoded value, may need to adjust during testing)
+- **GAS_PRICE=0.0093** (Currently a hardcoded value, may need to adjust during testing)
+
+
+### About config.json
+Inside the *config.json* file, under the PROJECT_SETTINGS object, there are 2 keys that hold a boolean value:
+- isLocal
+- shouldExecuteTrade
+
+isLocal: Whether bot should monitor a local hardhat netowork for arb opportunities. If false, the bot will monitor mainnet. 
+
+shouldExecuteTrade: Whether the bot should execute a trade on the custom contract if an arb opportunity is found. This is helpful if you want to monitor mainnet for arb opportunities, but don'
+t yet have a contract deployed. 
+
+
+### Local Testing
+1. Install Node.js if needed.
+2. ```npm install``` should install needed dependencies to the ```node_modules``` folder. Confirm with ```npx hardhat compile```.
+3. You're able to run tests against an ephemeral local network using ```npx hardhat test```.
+4. To spin up a persistent local network forked off mainnet, first create an https://www.alchemy.com/ account, and copy the api key to ```.env```.
+5. Next, run ```npx hardhat node```.
+6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```.
+7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
+8. Run the bot with ```npx hardhat run bot.js --network localhost```.
 
 
 ## TODOs
