@@ -52,9 +52,9 @@ If the planning stage suggests a profitable trade is possible, a flash loan will
 
 
 ## Tests
-Each .js file in ```Tests``` serves a unique purpose, and allowd for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
+Each .js file in ```Tests``` serves a unique purpose, and allowed for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
 
-All tests fork the Ethereum network via Alchemy API, specified by a block number in the hardhat configuration file. They then execute a JSON RPC to the local hardhat test provider to impersonate a specific ethereum account. From there, we have a lot of freedom to test arbitrary scenarios.
+All tests fork the Ethereum network via Alchemy API, specified by a block number in the hardhat configuration file. They then execute a JSON RPC to the local hardhat provider to impersonate a specific ethereum account. From there, we have a lot of freedom to test arbitrary scenarios.
 
 ```LocalPriceManipulationTests.js```: Tests the module that impersonates a whale with enough relevant ERC20 tokens to manipulate the price of a token pair on a DEX contract already deployed to our local test network. The manipulation of price by dumping a large amount of tokens is tested and verified. Note, this functionality is only used to create arbitrage opportunities within a local testing environment.     
 
