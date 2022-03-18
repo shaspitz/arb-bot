@@ -113,8 +113,8 @@ t yet have a contract deployed.
  - Verify bot works and can subscribe to on-chain events in sim. Along with tests running.
  - Everything is fully commented
  - move some of the code (like bot.js and helpers) into an src folder. 
- - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX.
- - In reference to above, why does sushiswap only have 8 SHIB tokens from the EVM fork we're working off? 
+ - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX. Try out buying/selling from multiple DEXs with one flashloan? Also try changing hardcoded estimated gas amount.
+ - In reference to above, why does sushiswap liquidity pool only have 8 SHIB tokens from the EVM fork we're working off? Conversion error somewhere? 
  - Make bot.js consider more than just swaps between two hardcoded token addresses.
  - make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different arb strategies.
  - setup deploy script for mainnet deployments, make it easy to deploy to different chains, see https://docs.ethers.io/v5/api/contract/example/#example-erc-20-contract--deploying-a-contract. Figure out how to set the hardhat config for AVAX network for example.
