@@ -84,29 +84,27 @@ If the planning stage suggests a profitable trade is possible, a flash loan will
 
 
 ## Tests
-Each .js file in ```Tests``` serves a uniqie purpose, and allowed for test driven development. 
+Each .js file in ```Tests``` serves a unique purpose, and allowd for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
 
-```LocalPriceManipulationTests.js```: First forks the Ethereum network, specified by a block in the hardhat configuration file. This is achieved via the Alchemy API. We then execute a JSON RPC to the local hardhat test provider to impersonate a specific ethereum account; a whale with enough relevant ERC20 tokens to manipulate the price of a token pair on a DEX contract already deployed to our local test network. The manipulation of price by dumping a large amount of tokens is tested and verified. Note, this functionality is only used to create arbitrage opportunities within a local testing environment.     
+All tests fork the Ethereum network via Alchemy API, specified by a block number in the hardhat configuration file. They then execute a JSON RPC to the local hardhat test provider to impersonate a specific ethereum account. From there, we have a lot of freedom to test arbitrary scenarios.
 
-```ArbitrageTests.js```: Verifies on-chain functionality for the arbitrage contract, and how it interacts with various deployed contracts. Also verifies critical arbitrage functions within the bot service. TODO: update this.
+```LocalPriceManipulationTests.js```: Tests the module that impersonates a whale with enough relevant ERC20 tokens to manipulate the price of a token pair on a DEX contract already deployed to our local test network. The manipulation of price by dumping a large amount of tokens is tested and verified. Note, this functionality is only used to create arbitrage opportunities within a local testing environment.     
 
-```BotTests.js```: TODO: update this.
+```ArbitrageTests.js```: Verifies on-chain functionality for the arbitrage contract, and how it interacts with various deployed contracts.
+
+```BotTests.js```: Tests critical funcitons within the Javascript bot. These determine profitability, monitor prices, token reserves, etc. 
 
 
 ## TODOs
  - general cleanup of documentation
- - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared ;)
- - see TODOs from written notes.
+ - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove TODOs
+ - Port over JS to TS.
  - move some of the code (like bot.js and helpers) into an src folder. 
- - Figure out unexpectidely small profits from unit tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX.
- - In general, maybe even future contract code should be kept private, disallowing people front running hard earned arb
- - Make "FlashAmount more intentional within bot.js. In the unit tests for arb, the flash amount is essentially arbitrary. How should we choose that value? 
- - In reference to above, make profit calc more intelligent
+ - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX.
  - Make bot.js consider more than just swaps between two hardcoded token addresses.
-- make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different (private) arb strategies.
+ - make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different arb strategies.
  - setup deploy script for mainnet deployments, make it easy to deploy to different chains, see https://docs.ethers.io/v5/api/contract/example/#example-erc-20-contract--deploying-a-contract. Figure out how to set the hardhat config for AVAX network for example.
  - Watch flash loan masterclasses, see where it can be applied to this proj
- - Finish porting over web3 refs to ethers. Unit test more and more of bot.js functionality. 
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
  - Learn about hardhat tasks, see where they'd have use here. 
  - Ideally make this super portable for new DEXs
