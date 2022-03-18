@@ -1,7 +1,7 @@
 # Arbitrage Bot
 Trading bot that utilizes custom Solidity contracts, in conjunction with decentralized exchange contracts, to execute token arbitrage opportunities on any EVM compatible blockchain. 
 
-To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo with more complexity and DEX integration. 
+To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo with more complexity and DEX integration, along with more in-depth tests. 
 
 
 
@@ -108,8 +108,10 @@ t yet have a contract deployed.
 
 ## TODOs
  - general cleanup of documentation
- - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove TODOs
+ - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove some of these TODOs from public repo **ARB-BOT-DELUXE**
  - Port over JS to TS.
+ - Verify bot works and can subscribe to on-chain events in sim. Along with tests running.
+ - Everything is fully commented
  - move some of the code (like bot.js and helpers) into an src folder. 
  - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX.
  - Make bot.js consider more than just swaps between two hardcoded token addresses.
