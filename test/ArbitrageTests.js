@@ -51,4 +51,3 @@ describe("Arbitrage contract", async function () {
   })
 });
 
-// TODO: is it useful to write full stack tests for a later developed optimization problem for profit/arb detection? 

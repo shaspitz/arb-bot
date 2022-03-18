@@ -101,7 +101,9 @@ async function initialSetup() {
     }
     console.log(`Starting bot for account address: ${account}`);
 }
-
+/**
+ * Subscribes to swap events from uniswap and sushiswap.
+ */
 async function subscribeToOnChainEvents() {
     uniSwapPairContract.on("Swap", async () => {
         await handleSwapEvent("Uniswap");

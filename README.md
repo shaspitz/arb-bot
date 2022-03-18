@@ -123,3 +123,4 @@ t yet have a contract deployed.
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
  - Learn about hardhat tasks, see where they'd have use here. 
  - Ideally make this super portable for new DEXs
+ - Experiment with more complex tests to enable more complex optimization scenarios.
