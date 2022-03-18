@@ -19,11 +19,11 @@ The first-pass strategy implemented is only a simple example with two hardcoded 
 
 _Planning_
 
-Consider two tokens, one we're "arbing for profits", and one intermediary token we're "arbing against". We'll also use two DEXs in this example, one to swap from our "arb for" token to the "arb against" token, and one to swap back from "arb against" to "arb for" tokens. The hope is that you'd end with more tokens than you've started with, after accounting for gas and flash loan fees.  
+Consider two types of tokens, one in which we're "arbing for profits", and one intermediary token we're "arbing against". We'll also use two DEXs in this example, one to swap from our "arb for" tokens to "arb against" tokens, and one to swap back from "arb against" to "arb for" tokens. The hope is to end up with more tokens than you've started with, taking advantage of price discrepancies, after accounting for gas and flash loan fees.  
 
-First, we get the token reserves from the second ("sell") DEX, then choose a portion of the token1 ("arb against") reserve. This portion will be the theoretical amount of token1 to obtain from the first ("buy") DEX, right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to obtain our set amount of token1 from the "buy" DEX. Lastly, we compute the maximum amount of token0 we can obtain from selling our set amount of token1 on the "sell" DEX.
+First, we get the token reserves from the second ("sell") DEX, then choose a portion of token1 ("arb against") reserves from the relevant liquidity pool on that DEX. This portion will be the theoretical amount of token1 to obtain from the first ("buy") DEX, right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to obtain our set amount of token1 from the "buy" DEX. Lastly, we compute the maximum amount of token0 we can obtain from selling our set amount of token1 on the "sell" DEX.
  
-If the value of token0 that would be gained exceeds gas fees in ETH (and potential flash loan fees), the theoretical trade would be profitable.
+If the amount of token0 that would be gained in this process exceeds gas fees in ETH (and potential flash loan fees), the theoretical trade would be profitable.
 
 _Execution_
 
@@ -54,7 +54,7 @@ If *determineProfitability()* returns true, *executeTrade()* is called, where we
 
 
 ## Tests
-Each .js file in ```Tests``` serves a unique purpose, and allowed for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
+Each .js file in ```Tests``` serves a unique purpose, and allowed for (pseudo) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
 
 All tests fork the Ethereum network via Alchemy API, specified by a block number in the hardhat configuration file. They then execute a JSON RPC to the local hardhat provider to impersonate a specific ethereum account. From there, we have a lot of freedom to test arbitrary scenarios.
 
