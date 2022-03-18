@@ -1,4 +1,4 @@
-const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
+const { setupAndManipulatePrice, AMOUNT } = require("../src/localPriceManipulator");
 const { UNISWAP } = require("../config.json");
 
 async function main() {

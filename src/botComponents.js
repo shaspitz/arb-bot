@@ -4,7 +4,7 @@ const { ethers, network, } = require("hardhat");
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { getTokenContracts, getPairContract, calculatePrice,
-    getEstimatedReturn, getReserves, configureArbContractAndSigner, getProvider, } = require('../helpers/generalHelpers');
+    getEstimatedReturn, getReserves, configureArbContractAndSigner, getProvider, } = require('./helpers');
 
 // Token we're attempting to gain.
 const arbFor = process.env.ARB_FOR;

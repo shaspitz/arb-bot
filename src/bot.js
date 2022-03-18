@@ -1,7 +1,7 @@
-require("./helpers/server");
 require("dotenv").config();
-const { warnAboutEphemeralNetwork } = require('./helpers/generalHelpers');
-const { initialSetup } = require('./helpers/botHelpers');
+require("./server");
+const { warnAboutEphemeralNetwork } = require('./helpers');
+const { initialSetup } = require('./botComponents');
 
 /**
  * Express server that scans for arb opportunities and executes swaps on custom 

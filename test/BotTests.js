@@ -2,10 +2,10 @@ const { expect } = require("chai");
 require("dotenv").config();
 const config = require('../config.json');
 const { initialSetup, getPriceDifferencePercent, determineDirection,
-  determineProfitability, executeTrade } = require("../helpers/botHelpers");
+  determineProfitability, executeTrade } = require("../src/botComponents");
 const { UNISWAP, SUSHISWAP, } = require("../config.json");
-const { setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
-const { resetHardhatToFork } = require('../helpers/generalHelpers');
+const { setupAndManipulatePrice, } = require("../src/localPriceManipulator");
+const { resetHardhatToFork } = require('../src/helpers');
 
 let token0Contract, token1Contract;
 

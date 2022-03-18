@@ -3,7 +3,7 @@ const { ChainId, WETH } = require("@uniswap/sdk");
 const chainId = ChainId.MAINNET;
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 const { ethers, waffle } = require("hardhat");
-const { warnAboutEphemeralNetwork } = require("../helpers/helpers");
+const { warnAboutEphemeralNetwork } = require("../src/helpers");
 
 // TODO: Make this script non hardcoded. Uses accounts[1].
 

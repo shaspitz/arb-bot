@@ -138,12 +138,6 @@ async function calculatePrice(pairContract) {
     return Big(reserve0).div(Big(reserve1)).toString();
 }
 
-function calculateDifference(uPrice, sPrice) {
-    // remember to update these methods and acd all the neccessary comments!!
-    // ! Need to update.
-    return (((uPrice - sPrice) / sPrice) * 100).toFixed(2)
-}
-
 /**
  * Obtains the amount of a token that'd be obtained from a two-dex arbitrage swap, given an amout
  * of input token, relevant router path, and token addresses.
@@ -179,6 +173,5 @@ module.exports = {
     getPairContract,
     getReserves,
     calculatePrice,
-    calculateDifference,
     getEstimatedReturn
 }

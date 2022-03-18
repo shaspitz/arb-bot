@@ -1,7 +1,7 @@
 // See https://hardhat.org/guides/deploying.html and/or https://github.com/wighawag/hardhat-deploy#1-namedaccounts-ability-to-name-addresses,
 // or https://www.youtube.com/watch?v=Uvphp4aVeDg&ab_channel=MoralisWeb3
 
-const { warnAboutEphemeralNetwork } = require("../helpers/helpers");
+const { warnAboutEphemeralNetwork } = require("../src/helpers");
 
 async function main() {
 

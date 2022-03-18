@@ -5,7 +5,7 @@ const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 const { ethers } = require("hardhat");
-const { getPairContract, calculatePrice, warnAboutEphemeralNetwork } = require("./generalHelpers");
+const { getPairContract, calculatePrice, warnAboutEphemeralNetwork } = require("./helpers");
 
 // Impersonation account config, see etherscan for more details.
 const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  

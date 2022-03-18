@@ -1,8 +1,8 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
+const { setupAndManipulatePrice, AMOUNT } = require("../src/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
-const { getArbContractAndDeployer, resetHardhatToFork } = require('../helpers/generalHelpers');
+const { getArbContractAndDeployer, resetHardhatToFork } = require('../src/helpers');
 const { UNISWAP } = require("../config.json");
 
 const ARB_FOR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH address.
