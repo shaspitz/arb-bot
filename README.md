@@ -14,26 +14,6 @@ Javascript/Node.js, Solidity, Hardhat, Ethers.js, Waffle.
 
 
 
-### Anatomy of bot.js -- TODO: update from recent refactors, most functionality is in bot helpers.. docstrings there are fine. but a quick TLDR of overall idea is better here. 
-The bot is essentially composed of 5 functions.
-- *main()*
-- *checkPrice()*
-- *determineDirection()*
-- *determineProfitability()*
-- *executeTrade()*
-
-The *main()* function subscribes to swap events from both Uniswap & Sushiswap, and loops until the user kills the process. 
-
-When a swap event occurs, *checkPrice()* is called, this function will query the current price of the assets on both Uniswap & Sushiswap, and return the **priceDifference**.
-
-Then *determineDirection()* will determine the order of exchanges to execute token swaps. This function will return an array, **routerPath**. The array contains Uniswap & Sushiswap's router contracts. If no array is returned, this means the **priceDifference** returned earlier is not higher than the **PRICE_DIFFERENCE** threshold defined in the .env file.
-
-If **routerPath** is not null, then *determineProfitability()* determines whether there is a potential arbitrage or not, and returns a boolean indicating this decision.
-
-If *determineProfitability()* returns true, *executeTrade()* is called, where we make our call to the custom arbitrage contract to perform an arb trade. Afterwards a report is logged, and the bot resumes monitoring.
-
-
-
 ### Simple Strategy Overview
 The first-pass strategy implemented is only a simple example with two hardcoded ERC20 tokens. Note that profitable strategies may require more complexity.
 
@@ -48,6 +28,28 @@ If the value of token0 that would be gained exceeds gas fees in ETH (and potenti
 _Execution_
 
 If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, borrowed funds (+fee) will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
+
+
+
+### Anatomy of bot components
+```src/bot.js``` contains only a main function, which subscribes to swap events from both Uniswap & Sushiswap, and loops until the user kills the process.
+
+The bot relies on some core functions that follow, contained in ```src/botComponents.js```:
+- *initialSetup()*
+- *getPriceDifferencePercent()*
+- *determineDirection()*
+- *determineProfitability()*
+- *executeTrade()*
+
+*initialSetup* instantiates all relevant contract objects, instantiates an ethers signer object, and subscribes to on-chain DEX events.  
+
+When a swap event occurs, *getPriceDifferencePercent()* is first called. This function will query the current price of relevant tokens on both Uniswap & Sushiswap, and return the **priceDifference** as a percentage.
+
+Then *determineDirection()* will determine the order of exchanges to execute token swaps. This function will return an array, **routerPath**. The array contains Uniswap & Sushiswap's router contracts in a specified order. If no array is returned, this means the **priceDifference** returned earlier is not higher than the **PRICE_DIFFERENCE** threshold defined in the .env file (by absolute value).
+
+If **routerPath** is non-null, then *determineProfitability()* determines whether there is a potential arbitrage or not, and returns a boolean indicating this decision. This is the "planning stage", in that more complex logic and/or optimization could be contained here.
+
+If *determineProfitability()* returns true, *executeTrade()* is called, where we make our call to the custom arbitrage contract to perform an arb trade. If the function returns false, no trade is executed and the bot resumes monitoring. Throughout this entire process, reports are logged.
 
 
 
@@ -107,18 +109,14 @@ t yet have a contract deployed.
 
 
 ## TODOs
- - general cleanup of documentation
  - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove some of these TODOs from public repo **ARB-BOT-DELUXE**
  - Port over JS to TS.
- - Verify bot works and can subscribe to on-chain events in sim. Along with tests running.
  - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX. Try out buying/selling from multiple DEXs with one flashloan? Also try changing hardcoded estimated gas amount.
  - In reference to above, why does sushiswap liquidity pool only have 8 SHIB tokens from the EVM fork we're working off? Conversion error somewhere? Or do we just need to look at other DEXs and liquidity pools.
- - See ```determineProfitability``` - should we make a reserved depletion threshold to experiment with different fractions? Currently hardcoded as 1/2.
+ - See ```determineProfitability``` - should we make a reserves depletion threshold to experiment with different fractions? Currently hardcoded as 1/2.
  - Make bot.js consider more than just swaps between two hardcoded token addresses.
- - make unit tests for basic functionality of bot.js. Try to brainstorm how that module could be portable for different arb strategies.
  - setup deploy script for mainnet deployments, make it easy to deploy to different chains, see https://docs.ethers.io/v5/api/contract/example/#example-erc-20-contract--deploying-a-contract. Figure out how to set the hardhat config for AVAX network for example.
- - Watch flash loan masterclasses, see where it can be applied to this proj
+ - Watch flash loan masterclasses, see where it can be applied to this proj.
  - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
- - Learn about hardhat tasks, see where they'd have use here. 
- - Ideally make this super portable for new DEXs
+ - Learn about hardhat tasks, see where they'd have use here.
  - Experiment with more complex tests to enable more complex optimization scenarios.
