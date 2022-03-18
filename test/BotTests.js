@@ -3,7 +3,7 @@ require("dotenv").config();
 const config = require('../config.json');
 const { initialSetup, getPriceDifferencePercent, determineDirection,
   determineProfitability, executeTrade } = require("../helpers/botHelpers");
-const { UNISWAP, } = require("../config.json");
+const { UNISWAP, SUSHISWAP, } = require("../config.json");
 const { setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
 const { resetHardhatToFork } = require('../helpers/generalHelpers');
 
@@ -26,8 +26,13 @@ describe("Bot helpers module", async function () {
     // Local price manipulator dumps SHIB into a SHIB/WETH pool on uniswap. 
     // Therefore the SHIB/WETH price on uniswap should go up, and percentage
     // returned from "checkPrice" (uni price - sushi price) / sushi price should go up too.  
-    const arbitraryDumpAmount = "100000000000";
+    let arbitraryDumpAmount = "10000000000000";
     await setupAndManipulatePrice(arbitraryDumpAmount, UNISWAP.V2_ROUTER_02_ADDRESS); 
+
+    // Let's dump a tad on sushiswap to provide some liquidity to it's pools
+    // TODO: Alternative is just to actually provide a liquidity pair by impersonating some account, or find better DEX.
+    arbitraryDumpAmount = "1000000";
+    await setupAndManipulatePrice(arbitraryDumpAmount, SUSHISWAP.V2_ROUTER_02_ADDRESS);
 
     const priceDiffAfter = await getPriceDifferencePercent();
     expect(Number(priceDiffAfter)).to.be.greaterThan(Number(priceDiffBefore));
