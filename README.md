@@ -105,18 +105,3 @@ t yet have a contract deployed.
 6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```.
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Run the bot with ```npx hardhat run bot.js --network localhost```.
-
-
-
-## TODOs
- - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove some of these TODOs from public repo **ARB-BOT-DELUXE**
- - Port over JS to TS.
- - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX. Try out buying/selling from multiple DEXs with one flashloan? Also try changing hardcoded estimated gas amount.
- - In reference to above, why does sushiswap liquidity pool only have 8 SHIB tokens from the EVM fork we're working off? Conversion error somewhere? Or do we just need to look at other DEXs and liquidity pools.
- - See ```determineProfitability``` - should we make a reserves depletion threshold to experiment with different fractions? Currently hardcoded as 1/2.
- - Make bot.js consider more than just swaps between two hardcoded token addresses.
- - setup deploy script for mainnet deployments, make it easy to deploy to different chains, see https://docs.ethers.io/v5/api/contract/example/#example-erc-20-contract--deploying-a-contract. Figure out how to set the hardhat config for AVAX network for example.
- - Watch flash loan masterclasses, see where it can be applied to this proj.
- - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
- - Learn about hardhat tasks, see where they'd have use here.
- - Experiment with more complex tests to enable more complex optimization scenarios.
