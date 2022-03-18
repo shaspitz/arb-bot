@@ -32,7 +32,7 @@ If the planning stage suggests a profitable trade is possible, a flash loan will
 
 
 ### Anatomy of bot components
-```src/bot.js``` contains only a main function, which subscribes to swap events from both Uniswap & Sushiswap, and loops until the user kills the process.
+```src/bot.js``` contains only a main function, which calls *initialSetup* and loops until the user kills the process, continuously waiting for events.
 
 The bot relies on some core functions that follow, contained in ```src/botComponents.js```:
 - *initialSetup()*
