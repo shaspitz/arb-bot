@@ -5,8 +5,6 @@ import "hardhat/console.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "./FlashLoan.sol";
 
-// TODO: unit test the beans outta this contract and "FlashLoan"
-
 contract Arbitrage is FlashLoan {
 
     // See: https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02
@@ -84,8 +82,6 @@ contract Arbitrage is FlashLoan {
         tokenPath[0] = token0;
         tokenPath[1] = token1;
 
-        // TODO: Does the minimum output amount of 0 tokens sent to DEX functions matter? 
-
         if (startOnUniswap) {
             // Swap token pair on uniswap first.
             swapOnUniswap(tokenPath, flashAmount, 0);
@@ -123,8 +119,6 @@ contract Arbitrage is FlashLoan {
         // Explicit error message is useful if loan cannot be repaid, DYDX doesn't provide this.
         require(IERC20(token0).balanceOf(address(this)) >= repayAmount,
             "Loan + Fee cannot be repayed. Transaction was reverted.");
-
-        // TODO: Should profit be payed out in ether? Not hard to make a conversion.
     }
 
     // Swaps an exact amount of input tokens for as many output tokens as possible,

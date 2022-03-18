@@ -84,7 +84,6 @@ abstract contract FlashLoan is ICallee {
     constructor() {
         // Hardcode relevant market ids, add one to prevent the mapping returning default value of 0. 
         tokenToMarketId[wrappedEthAddress] = 0 + 1;
-        // TODO: DAI is 1, USDC is 2, etc. Can verify these with "SoloMargin.getMarketTokenAddress".
     }
 
     function getMarketId(address token) public view returns (uint256) {
@@ -165,7 +164,7 @@ abstract contract FlashLoan is ICallee {
                 sign: true,
                 denomination: Types.AssetDenomination.Wei,
                 ref: Types.AssetReference.Delta,
-                value: loanAmount + 2 // Repayment amount with 2 wei fee. Or is it 1? 
+                value: loanAmount + 2  
             }),
             primaryMarketId: getMarketId(token), 
             secondaryMarketId: 0,
@@ -175,7 +174,7 @@ abstract contract FlashLoan is ICallee {
         });
 
         Account.Info[] memory accountInfos = new Account.Info[](1); 
-        accountInfos[0] = Account.Info({owner: address(this), number: 1}); // TODO: should nonce be 1 here? 
+        accountInfos[0] = Account.Info({owner: address(this), number: 1}); 
 
         // Solo margin contract will call "callFunction" as defined by inheriting contracts during "operate". 
         soloMargin.operate(accountInfos, actions);
