@@ -5,7 +5,7 @@ const { abi: uniSwapRouterAbi } = require("@uniswap/v2-periphery/build/IUniswapV
 const { abi: uniSwapFactoryAbi } = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
 const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20.json");
 const { ethers } = require("hardhat");
-const { getPairContract, calculatePrice, getProvider, warnAboutEphemeralNetwork } = require("./generalHelpers");
+const { getPairContract, calculatePrice, warnAboutEphemeralNetwork } = require("./generalHelpers");
 
 // Impersonation account config, see etherscan for more details.
 const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
@@ -17,29 +17,36 @@ const CHAIN_ID = ChainId.MAINNET; // We've forked mainnet here.
  * Manipulates the price of a relevant token pair, to properly test arbitrage opportunities
  * in a local dev environment.  
  * @param  {} amount of tokens to dump in order to manipulate price on local chain.  
+ * @param  {} routerAddressForDump for determining which dex to dump tokens onto.
  */
-async function setupAndManipulatePrice(amount) {
+async function setupAndManipulatePrice(amount, routerAddressForDump) {
 
     warnAboutEphemeralNetwork();
 
     const signer = await impersonateWhaleAccount();
 
+    let factoryToUse, routerToUse;
+
     // Instantiate contract objects.
     // In this context, router contract will be used to actually execute swap,
     // while factory contract will be used to log before and after prices.
-    const uniSwapFactory = new ethers.Contract(UNISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
-    const uniSwapRouter = new ethers.Contract(UNISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
-    const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
-    // TODO: Make more manipulation scenarios possible with this script.
-    // const sushiSwapFactory = new ethers.Contract(SUSHISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
-    // const sushiSwapRouter = new ethers.Contract(SUSHISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
+    // Only Uniswap and sushiswap are supported currently.
+    if (routerAddressForDump == UNISWAP.V2_ROUTER_02_ADDRESS) {
+        factoryToUse = new ethers.Contract(UNISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
+        routerToUse = new ethers.Contract(UNISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
+    } else if (routerAddressForDump == SUSHISWAP.V2_ROUTER_02_ADDRESS) {
+        factoryToUse = new ethers.Contract(SUSHISWAP.FACTORY_ADDRESS, uniSwapFactoryAbi, signer);
+        routerToUse = new ethers.Contract(SUSHISWAP.V2_ROUTER_02_ADDRESS, uniSwapRouterAbi, signer);
+    } else {
+        console.error(`DEX with router address of ${routerAddressForDump} not supported.`);
+        return;
+    }
+
+    const erc20Contract = new ethers.Contract(process.env.ARB_AGAINST, erc20Abi, signer);
 
     // Arbitrage opportunity will be against given ERC20 token.
     const wEthContract = new ethers.Contract(WETH[CHAIN_ID].address, erc20Abi, signer);
-
-    const factoryToUse = uniSwapFactory;
-    const routerToUse = uniSwapRouter;
 
     const pairContract = await getPairContract(factoryToUse, process.env.ARB_AGAINST, WETH[CHAIN_ID].address, signer);
 

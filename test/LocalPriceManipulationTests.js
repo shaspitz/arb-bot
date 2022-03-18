@@ -4,6 +4,7 @@ const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20
 const IUniswapV2Router02 = require('@uniswap/v2-periphery/build/IUniswapV2Router02.json');
 const { ethers } = require("hardhat");
 const { resetHardhatToFork } = require("../helpers/generalHelpers");
+const { UNISWAP } = require("../config.json");
 const { manipulatePrice, AMOUNT, ACCOUNT_TO_IMPERSONATE,
     impersonateWhaleAccount, setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
 
@@ -45,7 +46,7 @@ describe("Price manipulation methods.", async function () {
             wEthContract.balanceOf(signer.address)
         ]);
 
-        const {priceBefore, priceAfter} = await setupAndManipulatePrice(AMOUNT);
+        const {priceBefore, priceAfter} = await setupAndManipulatePrice(AMOUNT, UNISWAP.V2_ROUTER_02_ADDRESS);
 
         // We're dumping SHIB, so WETH/SHIB price should go up.
         priceMultiplier = priceAfter / priceBefore;

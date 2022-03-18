@@ -3,6 +3,7 @@ const { ethers } = require("hardhat");
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 const { getArbContractAndDeployer, resetHardhatToFork } = require('../helpers/generalHelpers');
+const { UNISWAP } = require("../config.json");
 
 const ARB_FOR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH address.
 const ARB_AGAINST = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE"; // SHIB address.
@@ -26,7 +27,7 @@ describe("Arbitrage contract", async function () {
 
   it("Test arb execution.", async function() {
     // Assumes that uniswap price is manipulated, then we have an arb opportunity against sushiswap.
-    await setupAndManipulatePrice(AMOUNT);
+    await setupAndManipulatePrice(AMOUNT, UNISWAP.V2_ROUTER_02_ADDRESS);
     const startOnUniswap = true;
     const token0 = ARB_FOR;
     const token1 = ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.

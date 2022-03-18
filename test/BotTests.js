@@ -3,6 +3,7 @@ require("dotenv").config();
 const config = require('../config.json');
 const { initialSetup, getPriceDifferencePercent, determineDirection,
   determineProfitability, executeTrade } = require("../helpers/botHelpers");
+const { UNISWAP, } = require("../config.json");
 const { setupAndManipulatePrice, } = require("../helpers/localPriceManipulator");
 const { resetHardhatToFork } = require('../helpers/generalHelpers');
 
@@ -26,7 +27,7 @@ describe("Bot helpers module", async function () {
     // Therefore the SHIB/WETH price on uniswap should go up, and percentage
     // returned from "checkPrice" (uni price - sushi price) / sushi price should go up too.  
     const arbitraryDumpAmount = "100000000000";
-    await setupAndManipulatePrice(arbitraryDumpAmount); 
+    await setupAndManipulatePrice(arbitraryDumpAmount, UNISWAP.V2_ROUTER_02_ADDRESS); 
 
     const priceDiffAfter = await getPriceDifferencePercent();
     expect(Number(priceDiffAfter)).to.be.greaterThan(Number(priceDiffBefore));
