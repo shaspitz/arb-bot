@@ -19,11 +19,11 @@ The first-pass strategy implemented is only a simple example with two hardcoded 
 
 _Planning_
 
-Consider two tokens, one we're "arbing for profits", and one intermediary token we're "arbing against". We'll also use two DEXs in this example, one to swap from our "arb for" token to the "arb against" token, and one to swap back from "arb against" to "arb for" tokens. The hope is that you'd end with more tokens than you've started with, after accounting for gas and flash loan fees.  
+Consider two types of tokens, one in which we're "arbing for profits", and one intermediary token we're "arbing against". We'll also use two DEXs in this example, one to swap from our "arb for" tokens to "arb against" tokens, and one to swap back from "arb against" to "arb for" tokens. The hope is to end up with more tokens than you've started with, taking advantage of price discrepancies, after accounting for gas and flash loan fees.  
 
-First, we get the token reserves from the second ("sell") DEX, then choose a portion of the token1 ("arb against") reserve. This portion will be the theoretical amount of token1 to obtain from the first ("buy") DEX, right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to obtain our set amount of token1 from the "buy" DEX. Lastly, we compute the maximum amount of token0 we can obtain from selling our set amount of token1 on the "sell" DEX.
+First, we get the token reserves from the second ("sell") DEX, then choose a portion of token1 ("arb against") reserves from the relevant liquidity pool on that DEX. This portion will be the theoretical amount of token1 to obtain from the first ("buy") DEX, right now this is portion is 1/2. Next, compute the minimum amount of token0 ("arb for") it'll take to obtain our set amount of token1 from the "buy" DEX. Lastly, we compute the maximum amount of token0 we can obtain from selling our set amount of token1 on the "sell" DEX.
  
-If the value of token0 that would be gained exceeds gas fees in ETH (and potential flash loan fees), the theoretical trade would be profitable.
+If the amount of token0 that would be gained in this process exceeds gas fees in ETH (and potential flash loan fees), the theoretical trade would be profitable.
 
 _Execution_
 
@@ -32,7 +32,7 @@ If the planning stage suggests a profitable trade is possible, a flash loan will
 
 
 ### Anatomy of bot components
-```src/bot.js``` contains only a main function, which subscribes to swap events from both Uniswap & Sushiswap, and loops until the user kills the process.
+```src/bot.js``` contains only a main function, which calls *initialSetup* and loops until the user kills the process, continuously waiting for events.
 
 The bot relies on some core functions that follow, contained in ```src/botComponents.js```:
 - *initialSetup()*
@@ -54,7 +54,7 @@ If *determineProfitability()* returns true, *executeTrade()* is called, where we
 
 
 ## Tests
-Each .js file in ```Tests``` serves a unique purpose, and allowed for (light) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
+Each .js file in ```Tests``` serves a unique purpose, and allowed for (pseudo) test driven development. Note that tests are not super thorough yet, and really only verify that critical functions are generally working in the way we want them to. 
 
 All tests fork the Ethereum network via Alchemy API, specified by a block number in the hardhat configuration file. They then execute a JSON RPC to the local hardhat provider to impersonate a specific ethereum account. From there, we have a lot of freedom to test arbitrary scenarios.
 
@@ -105,18 +105,3 @@ t yet have a contract deployed.
 6. In a separate terminal, you can run scripts against this local network using hardhat CLI, example: ```npx hardhat run script.js --network localhost```.
 7. If desired to run a script against an ephemeral network, leave out ```--network localhost```.
 8. Run the bot with ```npx hardhat run bot.js --network localhost```.
-
-
-
-## TODOs
- - Once all the below points are completed.. fork this repo into a private one which will contain arb strategies that should not be shared. Then can remove some of these TODOs from public repo **ARB-BOT-DELUXE**
- - Port over JS to TS.
- - Figure out unexpectidely small profits from tests. Prob has to do with high gas fees and high slippage in making one large transaction in one DEX. Try out buying/selling from multiple DEXs with one flashloan? Also try changing hardcoded estimated gas amount.
- - In reference to above, why does sushiswap liquidity pool only have 8 SHIB tokens from the EVM fork we're working off? Conversion error somewhere? Or do we just need to look at other DEXs and liquidity pools.
- - See ```determineProfitability``` - should we make a reserves depletion threshold to experiment with different fractions? Currently hardcoded as 1/2.
- - Make bot.js consider more than just swaps between two hardcoded token addresses.
- - setup deploy script for mainnet deployments, make it easy to deploy to different chains, see https://docs.ethers.io/v5/api/contract/example/#example-erc-20-contract--deploying-a-contract. Figure out how to set the hardhat config for AVAX network for example.
- - Watch flash loan masterclasses, see where it can be applied to this proj.
- - Research new stategies, create modular scripts for each blockchain, implement bot for DEXs on AVAX/FTM/MATIC, etc. 
- - Learn about hardhat tasks, see where they'd have use here.
- - Experiment with more complex tests to enable more complex optimization scenarios.
