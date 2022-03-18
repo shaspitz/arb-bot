@@ -47,7 +47,7 @@ If the value of token0 that would be gained exceeds gas fees in ETH (and potenti
 
 _Execution_
 
-If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, funds will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
+If the planning stage suggests a profitable trade is possible, a flash loan will be used to borrow the relevant amount of token0 planned above. The planned DEX swaps will execute within the context of the custom arbitrage contract. Once finished, borrowed funds (+fee) will automatically return to the flash loan provider, and relevant gains will be transfered to the deployer of the contract.
 
 
 
