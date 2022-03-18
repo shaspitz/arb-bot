@@ -26,7 +26,7 @@ The *main()* function subscribes to swap events from both Uniswap & Sushiswap, a
 
 When a swap event occurs, *checkPrice()* is called, this function will query the current price of the assets on both Uniswap & Sushiswap, and return the **priceDifference**.
 
-Then *determineDirection()* will determine the order of exchanges to execute token swaps. This function will return an array, **routerPath**. The array contains Uniswap & Sushiswap's router contracts. If no array is returned, this means the **priceDifference** returned earlier is not higher than **PRICE_DIFFERENCE** defined in the .env file.
+Then *determineDirection()* will determine the order of exchanges to execute token swaps. This function will return an array, **routerPath**. The array contains Uniswap & Sushiswap's router contracts. If no array is returned, this means the **priceDifference** returned earlier is not higher than the **PRICE_DIFFERENCE** threshold defined in the .env file.
 
 If **routerPath** is not null, then *determineProfitability()* determines whether there is a potential arbitrage or not, and returns a boolean indicating this decision.
 
