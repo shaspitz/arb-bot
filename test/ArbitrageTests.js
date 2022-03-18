@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const config = require('../config.json');
 const { setupAndManipulatePrice, AMOUNT } = require("../helpers/localPriceManipulator");
 const { abi: erc20Abi } = require('@openzeppelin/contracts/build/contracts/ERC20.json');
 const { getArbContractAndDeployer, resetHardhatToFork } = require('../helpers/generalHelpers');
@@ -31,9 +30,7 @@ describe("Arbitrage contract", async function () {
     const startOnUniswap = true;
     const token0 = ARB_FOR;
     const token1 = ARB_AGAINST; // SHIB was dumped, we wanna pickup the sale.
-    console.log("TODO: hardcoded flash amount for now. Can prob unit test more of the profit finding" +
-    " functionality from bot.js");
-    const flashAmount = AMOUNT; 
+    const flashAmount = AMOUNT; // Arbitrary flash amount for now, just verifying the on-chain function works.
 
     const balanceBefore = await arbForContract.balanceOf(await deployer.getAddress());
 
