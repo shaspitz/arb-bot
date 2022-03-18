@@ -20,9 +20,6 @@ async function main() {
 
     console.log("Waiting for swap events...");
 
-    // TODO: Why is this service making periodic RPC calls, "eth_chainId" and "eth_blockNumber"? 
-    // Is this internal to contract event subscriptions?  
-
     while (true) {
         await new Promise(r => setTimeout(r, 5000)); // confirm that events would not wait for this promise to hit.
     }

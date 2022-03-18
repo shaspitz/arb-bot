@@ -34,8 +34,6 @@ async function resetHardhatToFork() {
 function getProvider() {
     if (config.PROJECT_SETTINGS.isLocal) 
         return waffle.provider;
-    // TODO: determine if this mainnet url is correct, http instead?  
-    // ! Should I use get default provider here? 
     return new ethers.providers.JsonRpcProvider(`wss://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`);
 }
 

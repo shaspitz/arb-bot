@@ -5,8 +5,6 @@ const { abi: erc20Abi } = require("@openzeppelin/contracts/build/contracts/ERC20
 const { ethers, waffle } = require("hardhat");
 const { warnAboutEphemeralNetwork } = require("../src/helpers");
 
-// TODO: Make this script non hardcoded. Uses accounts[1].
-
 async function main() {
 
     warnAboutEphemeralNetwork();

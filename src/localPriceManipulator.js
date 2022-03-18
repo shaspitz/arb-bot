@@ -9,7 +9,7 @@ const { getPairContract, calculatePrice, warnAboutEphemeralNetwork } = require("
 
 // Impersonation account config, see etherscan for more details.
 const ACCOUNT_TO_IMPERSONATE = "0x72a53cdbbcc1b9efa39c834a540550e23463aacb";  
-const AMOUNT = "3000000000000"; // This is a lot of SHIB! TODO: Try out smaller dump values with smaller liquidity pools. 
+const AMOUNT = "3000000000000"; // This is a lot of SHIB! Can try out smaller dump values with smaller liquidity pools. 
 const GAS = 450000;
 const CHAIN_ID = ChainId.MAINNET; // We've forked mainnet here. 
 

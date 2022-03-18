@@ -16,7 +16,6 @@ let account = process.env.ACCOUNT;
 const units = process.env.UNITS;
 const priceDifferenceThresh = process.env.PRICE_DIFFERENCE;
 
-// TODO: Gas config may change between chains, look into this.
 const gasLimit = process.env.GAS_LIMIT;
 const estimatedGasCost = process.env.GAS_PRICE; // Estimated Gas: 0.008453220000006144 ETH + ~10%
 

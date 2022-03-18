@@ -30,7 +30,6 @@ describe("Bot helpers module", async function () {
     await setupAndManipulatePrice(arbitraryDumpAmount, UNISWAP.V2_ROUTER_02_ADDRESS); 
 
     // Let's dump a tad on sushiswap to provide some liquidity to it's pools
-    // TODO: Alternative is just to actually provide a liquidity pair by impersonating some account, or find better DEX.
     arbitraryDumpAmount = "1000000";
     await setupAndManipulatePrice(arbitraryDumpAmount, SUSHISWAP.V2_ROUTER_02_ADDRESS);
 
