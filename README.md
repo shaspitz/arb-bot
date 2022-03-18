@@ -22,7 +22,7 @@ The bot is essentially composed of 5 functions.
 - *determineProfitability()*
 - *executeTrade()*
 
-The *main()* function subscribes to swap events from both Uniswap & Sushiswap, and loops forever. 
+The *main()* function subscribes to swap events from both Uniswap & Sushiswap, and loops until the user kills the process. 
 
 When a swap event occurs, *checkPrice()* is called, this function will query the current price of the assets on both Uniswap & Sushiswap, and return the **priceDifference**.
 
