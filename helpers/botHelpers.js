@@ -77,23 +77,39 @@ async function initialSetup() {
     token0Symbol = res[2];
     token1Symbol = res[3];
 
-    // Subscribe to events outside the context of automated tests. 
-    if (network.name != "hardhat") {
-        uniSwapPairContract.on("Swap", async () => {
-            await handleSwapEvent("Uniswap");
-        });
-    
-        sushiSwapPairContract.on("Swap", async () => {
-            await handleSwapEvent("Sushiswap");
-        });
     // For automated tests, populate account variable properly. 
-    } else {
+    if (network.name == "hardhat") {
         const accounts = await provider.listAccounts();
         account = accounts[0];
 
         // Return token contracts for testing.
         return [token0Contract, token1Contract];
+
+    // For local testing, still use first default account. Also subscribe to events.
+    } else if (network.name == "localhost") {
+        const accounts = await provider.listAccounts();
+        account = accounts[0];
+        await subscribeToOnChainEvents();
+    
+    // On non test chain, account needs to be populated from .env. Also subscribe to events.
+    } else {
+        if (account === "") {
+            console.log("No account address provided in .env! Kill the process, enter an account and try again.");
+            return;
+        }
+        await subscribeToOnChainEvents();
     }
+    console.log(`Starting bot for account address: ${account}`);
+}
+
+async function subscribeToOnChainEvents() {
+    uniSwapPairContract.on("Swap", async () => {
+        await handleSwapEvent("Uniswap");
+    });
+
+    sushiSwapPairContract.on("Swap", async () => {
+        await handleSwapEvent("Sushiswap");
+    });
 }
 
 /**
