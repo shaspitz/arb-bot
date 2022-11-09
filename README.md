@@ -8,8 +8,6 @@ To potential employers reviewing my work, please reach out if you wish to see a 
 ## Background
 Check out https://ethereum.org/en/developers/docs/mev/ for context on this project.
 
-There are positives to MEV. DEXs require arbitrage "searchers" to ensure price correctness and stability for their protocols. However, I'm not claiming to be saving the world here :) Just a fun project to sharpen my skills in DEFI related development.
-
 
 
 ## Technologies
