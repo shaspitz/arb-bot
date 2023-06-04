@@ -1,10 +1,6 @@
 # Arbitrage Bot
 JS trading bot that uses custom Solidity contracts, in conjunction with DEX contracts, to execute arbitrage on any EVM compatible blockchain. 
 
-To potential employers reviewing my work, please reach out if you wish to see a private fork of this repo (currently in progress) with more complexity and DEX integration, along with more in-depth tests. 
-
-
-
 ## Background
 Check out https://ethereum.org/en/developers/docs/mev/ for context on this project.
 
